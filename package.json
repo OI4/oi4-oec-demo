@@ -8,6 +8,7 @@
   "keywords": [],
   "repository": "https://github.com/OI4/oi4-oec-demo.git",
   "workspaces": [
+    "packages/*"
   ],
   "devDependencies": {
     "@types/jest": "^27.4.1",
@@ -32,8 +33,6 @@
     "clean": "lerna clean",
     "clean:build": "lerna run clean",
     "dependency:circular": "node_modules/madge/bin/cli.js --warning --circular ./",
-    "test": "jest",
-    "prePublish": "lerna publish prepatch --no-git-tag-version --preid alpha --loglevel silly --yes --force-publish",
-    "publishIt": "lerna publish from-package --no-git-tag-version --loglevel silly --yes",
+    "test": "jest"
   }
 }
