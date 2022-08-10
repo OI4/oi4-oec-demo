@@ -1,11 +1,12 @@
 # OI4 OEC OT Demo Connector oi4-oec-service-demo
-
+___
 The oi4-oec-service-demo service is demo connector to explain and understand the usage ot the [OI4 OEC service](https://github.com/OI4/oi4-service). 
 It simulates ambient sensors by querying the API of [OpenWeather](https://openweathermap.org).
 
 You can run the service locally or as docker container.
 
 ## Installation and build
+___
 Make sure you provided a PAT as described in the root [README.md](../../README.md) file.
 ```
 yarn install
@@ -21,6 +22,7 @@ docker:build:snapshot
 The copy command needs the information where to find the oi4-service code on your machine. This information is provided in the .env file with the environment variable `OI4_SERVICE_PACKAGES_ROOT`.
 
 ## Prerequisites
+___
 
 ### GitHub package repository access
 Apply the configuration as described in the root [README.md](../../README.md) file.
@@ -39,6 +41,7 @@ In case the private key is protected with a passphrase, you will need to provide
 The usage of the MQTT settings is explained in the next section.
 
 ## General configuration
+___
 The configuration of the connector follows the definitions of the Open Edge Computing Guideline. It is seperated into the following sections:
 - Message Bus storage
 - OI4 certificate storage
@@ -72,3 +75,28 @@ The service will use the following application specific storages:
 
 ### MAM setting
 The MAM setting used by the service is defined in the `config/mam.json` file.
+
+### Environment variables
+There are two environment variables that can be used to overwrite the log and event notification level:
+- OI4_EDGE_EVENT_LEVEL
+- OI4_EDGE_LOG_LEVEL
+The values are Syslog levels according to the [RFC 3164](https://tools.ietf.org/html/rfc3164) and can be one of `emergency`,`alert`,`critical`,`error`,`warning`,`notice`,`info`,`debug`
+The default value for event notification and logging is `warning`.
+
+## Run the service
+___
+To run the service make sure you processed the steps above to build and configure the service.
+
+### Run the service locally
+The oi4-oec-service-demo is basically a nodejs application. You can run it with the following command:
+```
+cd packages/oi4-oec-service-demo
+node dist/app.js local
+```
+It will start the service in the local mode where the configuration is taken from the docker_configs directory by default.
+There is also yarn script doing the same thing. Just run `yarn run testLocal`
+
+### Run the service as docker container
+The main intention of the service is to run as docker container, of course. As every OI4 OEC service this service need a couple of mounted files and directories.
+The easiest way to run the container is with the help of the [docker-compose file](docker_configs/docker-compose.yml).
+All you need to do is to adjust the host location of the volumes and run `docker compose up -d`.
