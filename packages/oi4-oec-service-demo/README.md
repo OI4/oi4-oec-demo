@@ -1,6 +1,6 @@
 # OI4 OEC OT Demo Connector oi4-oec-service-demo
 ___
-The oi4-oec-service-demo service is demo connector to explain and understand the usage ot the [OI4 OEC service](https://github.com/OI4/oi4-service). 
+The oi4-oec-service-demo service is a demo connector to explain and understand the usage ot the [oi4-oec-service](https://github.com/OI4/oi4-service). 
 It simulates ambient sensors by querying the API of [OpenWeather](https://openweathermap.org).
 
 You can run the service locally or as docker container.
@@ -38,35 +38,10 @@ The OT Demo Connector uses the MQTT connection of the OI4 OEC service. It requir
 You will need the Certificate Authority (CA) certificate that singed the certificate of the MQTT broker. For the authentication you need the username and password or the client certificate and its according private key.
 In case the private key is protected with a passphrase, you will need to provide the passphrase as well.
 
-The usage of the MQTT settings is explained in the next section.
-
-## General configuration
+## Configuration
 ___
-The configuration of the connector follows the definitions of the Open Edge Computing Guideline. It is seperated into the following sections:
-- Message Bus storage
-- OI4 certificate storage
-- Secret storage
-- Application specific storages
-- MAM setting
-
-It depends on the usage of the connector how the configuration is used and provided. In cast the service is used as docker container, the files and folders must be mapped as volumes to the container.
-If the connector is run locally you can either provide the base path to the configuration folders with the environment variable `BASE_PATH` or you can overwrite the configuration that is stored in the docker_configs directory directly (please do not check in any of the files in case you changed them).
-
-By default, the [app.ts](src/app.ts) will use a passphrase file and ignore the client certificate if provided. Just uncomment the lines in the app.ts file to use the client certificate.
-
-### Message Bus storage
-The message bus storage contains all the non-sensitive data to connect to the broker, like the CA certificates (not the private key), addresses, ports, etc. and consists of the following elements:
-- Message bus CA certificate is stored in the `certs/ca.pem` file.
-- Broker settings are stored in the `config/broker.json` file.
-
-### OI4 certificate storage
-The certificate storage contains all certificates used in the OEC but not their private keys.
-- Message bus client certificate is stored in the `certs/oi4-oec-service-demo.pem` file, in case client certificate based authentication is used.
-
-### Secret storage
-Sensitive data like private keys and passphrases are stored in the secret storage.
-- Username and password is stored in the `secrets/mqtt_passphrase` in case it is used. The file contains username and password separated by a colon BASE64 encoded.
-- Client certificate is stored in the `secrets/mqtt_private_key.pem` in case client certificate based authentication is used.
+The general configuration of the service is described in the [wiki](https://github.com/OI4/oi4-oec-service/wiki/Configuration-of-OEC-services) of the oi4-oec-service.
+The demo service will handle all common configuration as described there. In addition there are the following configuration locations used.
 
 ### Application specific storages
 The service will use the following application specific storages:
@@ -76,12 +51,33 @@ The service will use the following application specific storages:
 ### MAM setting
 The MAM setting used by the service is defined in the `config/mam.json` file.
 
-### Environment variables
-There are two environment variables that can be used to overwrite the log and event notification level:
-- OI4_EDGE_EVENT_LEVEL
-- OI4_EDGE_LOG_LEVEL
-The values are Syslog levels according to the [RFC 3164](https://tools.ietf.org/html/rfc3164) and can be one of `emergency`,`alert`,`critical`,`error`,`warning`,`notice`,`info`,`debug`
-The default value for event notification and logging is `warning`.
+## Building a docker image
+___
+### Modules in OI4 GitHub package repo
+The oi4-service Node.js modules are published to a private repository on GitHub. To access the modules the repository must be registered and a PAT (personal access token) is needed for the authentication.
+This is typically done by putting a .npmrc file into to current working directory.
+As credentials shall not be shared in a GitHub repository the file uses an environment variable `PACKAGES_AUTH_TOKEN` to retrieve the PAT.
+If the node module dependencies are installed in the dockerfile during the build process (e.g. with yarn install), the build process must also use the .npmrc file and authenticate against the repository.
+
+In the example Docker image build process this is done by copying the .npmrc file and the PAT is provided as build argument.
+
+### Using unpublished versions of oi4-service in docker builds
+Current, up-to-date versions of the oi4-service are published as node modules to the GitHub package repository.
+It is always recommended to use these packages for any service. In cases where unreleased and unpublished versions of the oi4-service should be used (e.g. when working on the oi4-service itself) a `yarn install` or similar will not work.
+The demo image uses a build flag BUILD_ENV to switch to a snapshot build, which will copy the content of the `node_module/oi4` folder to the image. This can be used to link the latest versions of the oi4-service to the node_modules.
+
+BUT symlinks will not work with docker build. Therefore, a `yarn link` will not work. Best known solution so far is, to physically copy the folder to the node_modules folder.
+
+
+## General configuration
+___
+The configuration of the connector follows the definitions of the Open Edge Computing Guideline. 
+
+It depends on the usage of the connector how the configuration is used and provided. In cast the service is used as docker container, the files and folders must be mapped as volumes to the container.
+If the connector is run locally you can either provide the base path to the configuration folders with the environment variable `BASE_PATH` or you can overwrite the configuration that is stored in the docker_configs directory directly (please do not check in any of the files in case you changed them).
+
+By default, the [app.ts](src/app.ts) will use a passphrase file and ignore the client certificate if provided. Just uncomment the lines in the app.ts file to use the client certificate.
+
 
 ## Run the service
 ___
