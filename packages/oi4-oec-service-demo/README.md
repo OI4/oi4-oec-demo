@@ -1,12 +1,12 @@
 # OI4 OEC OT Demo Connector oi4-oec-service-demo
-___
+
 The oi4-oec-service-demo service is a demo connector to explain and understand the usage ot the [oi4-oec-service](https://github.com/OI4/oi4-service). 
 It simulates ambient sensors by querying the API of [OpenWeather](https://openweathermap.org).
 
 You can run the service locally or as docker container.
 
 ## Installation and build
-___
+
 Make sure you provided a PAT as described in the root [README.md](../../README.md) file.
 ```
 yarn install
@@ -22,7 +22,6 @@ docker:build:snapshot
 The copy command needs the information where to find the oi4-service code on your machine. This information is provided in the .env file with the environment variable `OI4_SERVICE_PACKAGES_ROOT`.
 
 ## Prerequisites
-___
 
 ### GitHub package repository access
 Apply the configuration as described in the root [README.md](../../README.md) file.
@@ -39,7 +38,6 @@ You will need the Certificate Authority (CA) certificate that singed the certifi
 In case the private key is protected with a passphrase, you will need to provide the passphrase as well.
 
 ## Configuration
-___
 The general configuration of the service is described in the [wiki](https://github.com/OI4/oi4-oec-service/wiki/Configuration-of-OEC-services) of the oi4-oec-service.
 The demo service will handle all common configuration as described there. In addition there are the following configuration locations used.
 
@@ -52,7 +50,7 @@ The service will use the following application specific storages:
 The MAM setting used by the service is defined in the `config/mam.json` file.
 
 ## Building a docker image
-___
+
 ### Modules in OI4 GitHub package repo
 The oi4-service Node.js modules are published to a private repository on GitHub. To access the modules the repository must be registered and a PAT (personal access token) is needed for the authentication.
 This is typically done by putting a .npmrc file into to current working directory.
@@ -68,9 +66,7 @@ The demo image uses a build flag BUILD_ENV to switch to a snapshot build, which 
 
 BUT symlinks will not work with docker build. Therefore, a `yarn link` will not work. Best known solution so far is, to physically copy the folder to the node_modules folder.
 
-
 ## General configuration
-___
 The configuration of the connector follows the definitions of the Open Edge Computing Guideline. 
 
 It depends on the usage of the connector how the configuration is used and provided. In cast the service is used as docker container, the files and folders must be mapped as volumes to the container.
@@ -80,7 +76,6 @@ By default, the [app.ts](src/app.ts) will use a passphrase file and ignore the c
 
 
 ## Run the service
-___
 To run the service make sure you processed the steps above to build and configure the service.
 
 ### Run the service locally
