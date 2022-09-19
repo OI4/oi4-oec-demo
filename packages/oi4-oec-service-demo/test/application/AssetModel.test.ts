@@ -2,7 +2,7 @@ import fs from 'fs';
 // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
 // @ts-ignore
 import {Asset} from '../../src/application/AssetModel';
-import {Resource} from '@oi4/oi4-oec-service-model';
+import {Resources} from '@oi4/oi4-oec-service-model';
 
 describe('AssetModel.ts test', () => {
     it('should return MasterAssetModel', async () => {
@@ -19,6 +19,6 @@ describe('AssetModel.ts test', () => {
         }, {})
 
         expect(asset.toMasterAssetModel()).toEqual(mam);
-        expect(asset.resourceType()).toEqual(Resource.MAM);
+        expect(asset.resourceType()).toEqual(Resources.MAM);
     });
 });

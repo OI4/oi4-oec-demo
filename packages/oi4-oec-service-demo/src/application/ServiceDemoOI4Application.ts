@@ -5,7 +5,7 @@ import {
     MqttSettings,
     OI4Application
 } from '@oi4/oi4-oec-service-node';
-import {IOI4ApplicationResources, OI4Payload, Resource} from '@oi4/oi4-oec-service-model';
+import {IOI4ApplicationResources, OI4Payload, Resources} from '@oi4/oi4-oec-service-model';
 import {OPCUABuilder} from '@oi4/oi4-oec-service-opcua-model';
 import {ServiceDemoOI4ApplicationResources} from './ServiceDemoOI4ApplicationResources';
 import {WeatherService} from '../weather/WeatherService';
@@ -36,8 +36,8 @@ export class ServiceDemoOI4Application extends OI4Application {
                         sv_1: response.main.pressure,
                         sv_2: response.main.humidity,
 
-                        resourceType(): Resource {
-                            return Resource.DATA;
+                        resourceType(): Resources {
+                            return Resources.DATA;
                         }
                     };
                     console.log(pv);

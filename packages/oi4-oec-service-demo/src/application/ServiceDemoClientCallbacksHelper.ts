@@ -1,4 +1,4 @@
-import {ClientCallbacksHelper} from '@oi4/oi4-oec-service-node/dist/Utilities/Helpers/ClientCallbacksHelper';
+import {ClientCallbacksHelper} from '@oi4/oi4-oec-service-node';
 
 export class ServiceDemoClientCallbacksHelper extends ClientCallbacksHelper {
 

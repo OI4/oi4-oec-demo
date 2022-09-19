@@ -37,7 +37,7 @@ export class ServiceDemoOI4ApplicationResources extends OI4ApplicationResources 
 
         this.assets.map(asset => {
             const masterAssetModel = asset.toMasterAssetModel();
-            this.addSubResource(new OI4Resource(masterAssetModel));
+            this.addSource(new OI4Resource(masterAssetModel));
         });
     }
 
