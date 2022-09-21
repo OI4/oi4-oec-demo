@@ -252,9 +252,9 @@
     "@babel/helper-plugin-utils" "^7.18.6"
 
 "@babel/runtime@^7.12.0":
-  version "7.18.9"
-  resolved "https://registry.yarnpkg.com/@babel/runtime/-/runtime-7.18.9.tgz#b4fcfce55db3d2e5e080d2490f608a3b9f407f4a"
-  integrity sha512-lkqXDcvlFT5rvEjiu6+QYO+1GXrEHRo2LOtS7E4GtX5ESIZOgepqsZBVIj6Pv+a6zqsya9VCgiK1KAK4BvJDAw==
+  version "7.19.0"
+  resolved "https://registry.yarnpkg.com/@babel/runtime/-/runtime-7.19.0.tgz#22b11c037b094d27a8a2504ea4dcff00f50e2259"
+  integrity sha512-eR8Lo9hnDS7tqkO7NsV+mKvCmv5boaXFSZ70DnfhcgiEne8hv9oCEd36Klw74EtizEqLsy4YnW8UWwpBVolHZA==
   dependencies:
     regenerator-runtime "^0.13.4"
 
@@ -1218,9 +1218,9 @@
     write-file-atomic "^3.0.3"
 
 "@mapbox/node-pre-gyp@^1.0.0":
-  version "1.0.9"
-  resolved "https://registry.yarnpkg.com/@mapbox/node-pre-gyp/-/node-pre-gyp-1.0.9.tgz#09a8781a3a036151cdebbe8719d6f8b25d4058bc"
-  integrity sha512-aDF3S3rK9Q2gey/WAttUlISduDItz5BU3306M9Eyv6/oS40aMprnopshtlKTykxRNIBEZuRMaZAnbrQ4QtKGyw==
+  version "1.0.10"
+  resolved "https://registry.yarnpkg.com/@mapbox/node-pre-gyp/-/node-pre-gyp-1.0.10.tgz#8e6735ccebbb1581e5a7e652244cadc8a844d03c"
+  integrity sha512-4ySo4CjzStuprMwk35H5pPbkymjv1SF3jGLj6rAHp/xT/RF7TL7bd9CTm1xDY49K2qF7jmR/g7k+SkLETP6opA==
   dependencies:
     detect-libc "^2.0.0"
     https-proxy-agent "^5.0.0"
@@ -1528,59 +1528,64 @@
   dependencies:
     "@octokit/openapi-types" "^12.11.0"
 
-"@oi4/oi4-oec-json-schemas@^1.0.0-preview.3":
-  version "1.0.0-preview.3"
-  resolved "https://npm.pkg.github.com/download/@OI4/oi4-oec-json-schemas/1.0.0-preview.3/a8976a9b5d6a8a85b65a609b158f376fb6343cb4#a8976a9b5d6a8a85b65a609b158f376fb6343cb4"
-  integrity sha512-89ogGTOufQZ9QZsADjB0qt7R0yMLtPLw4eFEd6vzSoqpHNjyAnhD3taqh1gJ2AchaohQ9ulT+0vqcjafOMAIzQ==
+"@oi4/oi4-oec-json-schemas@^1.0.0-preview.4":
+  version "1.0.0-preview.4"
+  resolved "https://npm.pkg.github.com/download/@OI4/oi4-oec-json-schemas/1.0.0-preview.4/e629508777e5ef4dcc8241d017677f476b8a0d49#e629508777e5ef4dcc8241d017677f476b8a0d49"
+  integrity sha512-w5qgfgsO7y9q7u/LHDDHsRPFN4bpF2qKn/TH6xC/ADOeNwDDIXnDO+GpeMEDrE2AdjlQg9vilG3M8B4KomE3+A==
 
-"@oi4/oi4-oec-service-conformity-validator@^1.0.0-preview.3":
-  version "1.0.0-preview.3"
-  resolved "https://npm.pkg.github.com/download/@OI4/oi4-oec-service-conformity-validator/1.0.0-preview.3/187c42e2249baa886aed47870ae2214cd5c85f84#187c42e2249baa886aed47870ae2214cd5c85f84"
-  integrity sha512-n9qpn5ZwLRJK3Kwpryd52Ent3JRs7xM0sdkVUWIqQZWb2K2mqYlajsogGl441QXQ1COzyX7Kq100uG6/6CS8aQ==
+"@oi4/oi4-oec-service-conformity-validator@^1.0.0-preview.4":
+  version "1.0.0-preview.4"
+  resolved "https://npm.pkg.github.com/download/@OI4/oi4-oec-service-conformity-validator/1.0.0-preview.4/2623ed18af128f5e8446ba476058eefabf7b4280#2623ed18af128f5e8446ba476058eefabf7b4280"
+  integrity sha512-p4rQ+ZSnmIpXjfIaICjLcj86cqeWQjtpx7AqiZLzTb7ZzCr1IELbHtbRHazy3034gLgh/o8EIqtWFoXCq80aLg==
   dependencies:
-    "@oi4/oi4-oec-json-schemas" "^1.0.0-preview.3"
-    "@oi4/oi4-oec-service-logger" "^1.0.0-preview.3"
+    "@oi4/oi4-oec-json-schemas" "^1.0.0-preview.4"
+    "@oi4/oi4-oec-service-logger" "^1.0.0-preview.4"
     async-mqtt "^2.5.0"
 
-"@oi4/oi4-oec-service-logger@^1.0.0-preview.3":
-  version "1.0.0-preview.3"
-  resolved "https://npm.pkg.github.com/download/@OI4/oi4-oec-service-logger/1.0.0-preview.3/b2abeee9deca69b3940019fe8c7fe44747d62b64#b2abeee9deca69b3940019fe8c7fe44747d62b64"
-  integrity sha512-ExXPdgEWxEEvwBfLpC/RFxAFOQNCxkQIa2rCMfnbnLv7ZMqck61lZFLB0wP+vp3qzldekL2kMn/JYL43W93cDA==
+"@oi4/oi4-oec-service-logger@^1.0.0-preview.4":
+  version "1.0.0-preview.4"
+  resolved "https://npm.pkg.github.com/download/@OI4/oi4-oec-service-logger/1.0.0-preview.4/de7d327fbdba6cda4ddbf37291455eb4b8f6afb9#de7d327fbdba6cda4ddbf37291455eb4b8f6afb9"
+  integrity sha512-uDq6QA2iM6YUK2VQ8Gx4BpmXtz5Xy2eAbTTs8xEiutpijJwetxczfDAmBTt9aNaILP+eZJ2wzJ/nSIDk0KsSHw==
   dependencies:
-    "@oi4/oi4-oec-service-model" "^1.0.0-preview.3"
-    "@oi4/oi4-oec-service-opcua-model" "^1.0.0-preview.3"
+    "@oi4/oi4-oec-service-model" "^1.0.0-preview.4"
+    "@oi4/oi4-oec-service-opcua-model" "^1.0.0-preview.4"
     async-mqtt "^2.5.0"
     uuid "^8.3.2"
     winston "^3.3.3"
     winston-syslog "^2.4.4"
 
-"@oi4/oi4-oec-service-model@^1.0.0-preview.3":
-  version "1.0.0-preview.3"
-  resolved "https://npm.pkg.github.com/download/@OI4/oi4-oec-service-model/1.0.0-preview.3/a97c274053acc38ff3d56522ae38bf25e858bb89#a97c274053acc38ff3d56522ae38bf25e858bb89"
-  integrity sha512-zQLZlDYWTx6+Jbjp7IU1A3d6FMvMPBLhia1mUebRLNTP8yr5j/2/eAIvsz7BHyid4lP/yrU0aON+05wN+BZskQ==
+"@oi4/oi4-oec-service-model@^1.0.0-preview.4":
+  version "1.0.0-preview.4"
+  resolved "https://npm.pkg.github.com/download/@OI4/oi4-oec-service-model/1.0.0-preview.4/d171bdf1e8e1e006665ddafc1f4960f5a9144a78#d171bdf1e8e1e006665ddafc1f4960f5a9144a78"
+  integrity sha512-9yluMPkJxX6GK3QEkrRjMXMXDo9Au2vyPxMqvcDhNUI43vFESdOzwMWqVLoJewplZQLo+jtUZWjj/nWhSfCFGA==
   dependencies:
-    "@oi4/oi4-oec-json-schemas" "^1.0.0-preview.3"
-    "@oi4/oi4-oec-service-opcua-model" "^1.0.0-preview.3"
+    "@oi4/oi4-oec-json-schemas" "^1.0.0-preview.4"
+    "@oi4/oi4-oec-service-opcua-model" "^1.0.0-preview.4"
 
-"@oi4/oi4-oec-service-node@^1.0.0-preview.3":
-  version "1.0.0-preview.3"
-  resolved "https://npm.pkg.github.com/download/@OI4/oi4-oec-service-node/1.0.0-preview.3/2be641b8d28e19e404319426961b87bfe8911bcf#2be641b8d28e19e404319426961b87bfe8911bcf"
-  integrity sha512-Ly5Yelcw097xO+QY9tA8xh8uZ4sXy1ECHmHgXdqej378uA786XZkneBNxVMKoZn7YuZ6A/t2942J3a3scQYRnA==
+"@oi4/oi4-oec-service-node@^1.0.0-preview.4":
+  version "1.0.0-preview.4"
+  resolved "https://npm.pkg.github.com/download/@OI4/oi4-oec-service-node/1.0.0-preview.4/a15ddb54b2e93f88f8bef3fcc650c7a4c57a927c#a15ddb54b2e93f88f8bef3fcc650c7a4c57a927c"
+  integrity sha512-7Q+63olsMlGSjav5ovFeGvkJDbvCHamFQwgMREEMYTIdJ9f+f6fds20A8lLPIi2TpEhJy+nXmdFIJKqigpt4pw==
   dependencies:
-    "@oi4/oi4-oec-service-conformity-validator" "^1.0.0-preview.3"
-    "@oi4/oi4-oec-service-logger" "^1.0.0-preview.3"
-    "@oi4/oi4-oec-service-model" "^1.0.0-preview.3"
-    "@oi4/oi4-oec-service-opcua-model" "^1.0.0-preview.3"
+    "@oi4/oi4-oec-service-conformity-validator" "^1.0.0-preview.4"
+    "@oi4/oi4-oec-service-logger" "^1.0.0-preview.4"
+    "@oi4/oi4-oec-service-model" "^1.0.0-preview.4"
+    "@oi4/oi4-oec-service-opcua-model" "^1.0.0-preview.4"
     cors "^2.8.5"
     dotenv "^8.2.0"
     express "^4.17.1"
 
-"@oi4/oi4-oec-service-opcua-model@^1.0.0-preview.3":
-  version "1.0.0-preview.3"
-  resolved "https://npm.pkg.github.com/download/@OI4/oi4-oec-service-opcua-model/1.0.0-preview.3/ebf90aed2fe6f58363c2142c6484ff3f29f13af6#ebf90aed2fe6f58363c2142c6484ff3f29f13af6"
-  integrity sha512-JFPo9twNfbNcR1Y0UvWwQ4C7rArIoR4deMD54E3HutREAhu9pNIt+2Ij4vtNeECPtKSLbd2offxb3AVCSIhujg==
+"@oi4/oi4-oec-service-opcua-model@^1.0.0-preview.4":
+  version "1.0.0-preview.4"
+  resolved "https://npm.pkg.github.com/download/@OI4/oi4-oec-service-opcua-model/1.0.0-preview.4/3632d35f5fea20d9bfac7ec0f7a4e110ac3e9fef#3632d35f5fea20d9bfac7ec0f7a4e110ac3e9fef"
+  integrity sha512-YdlEHHogV4A+ATKjwpUqovv0vYsWztxXXuv+DWTHfTb8ar5pgqlb6nmq71yXX3JkVRp1ORMx8mDZRX743ZPEig==
   dependencies:
-    "@oi4/oi4-oec-json-schemas" "^1.0.0-preview.3"
+    "@oi4/oi4-oec-json-schemas" "^1.0.0-preview.4"
+
+"@sindresorhus/is@^4.0.0":
+  version "4.6.0"
+  resolved "https://registry.yarnpkg.com/@sindresorhus/is/-/is-4.6.0.tgz#3c7c9c46e678feefe7a2e5bb609d3dbd665ffb3f"
+  integrity sha512-t09vSN3MdfsyCHoFcTRCH/iUtG7OJ0CsjzB8cjAmKc/va/kIgeDI/TxsigdncE/4be734m0cvIYwNaV4i2XqAw==
 
 "@sindresorhus/is@^4.0.0":
   version "4.6.0"
@@ -5638,7 +5643,7 @@ jsesc@^2.5.1:
   resolved "https://registry.yarnpkg.com/jsesc/-/jsesc-2.5.2.tgz#80564d2e483dacf6e8ef209650a67df3f0c283a4"
   integrity sha512-OYu7XEzjkCQ3C5Ps3QIZsQfNpqoJyZZA99wd9aWd05NCtC5pWOkShK2mkL6HXQR6/Cy2lbNdPlZBpuQHXE63gA==
 
-json-buffer@3.0.1, json-buffer@~3.0.1:
+json-buffer@3.0.1:
   version "3.0.1"
   resolved "https://registry.yarnpkg.com/json-buffer/-/json-buffer-3.0.1.tgz#9338802a30d3b6605fbe0613e094008ca8c05a13"
   integrity sha512-4bV5BfR2mqfQTJm+V5tPPdf+ZpuhiIvTuAB5g8kcrXOZpTT/QwwVRWBywX1ozr6lEuPdbHxwaJlm9G6mI2sfSQ==
@@ -5720,11 +5725,10 @@ jsprim@^1.2.2:
     verror "1.10.0"
 
 keyv@^4.0.0:
-  version "4.3.3"
-  resolved "https://registry.yarnpkg.com/keyv/-/keyv-4.3.3.tgz#6c1bcda6353a9e96fc1b4e1aeb803a6e35090ba9"
-  integrity sha512-AcysI17RvakTh8ir03+a3zJr5r0ovnAH/XTXei/4HIv3bL2K/jzvgivLK9UuI/JbU1aJjM3NSAnVvVVd3n+4DQ==
+  version "4.5.0"
+  resolved "https://registry.yarnpkg.com/keyv/-/keyv-4.5.0.tgz#dbce9ade79610b6e641a9a65f2f6499ba06b9bc6"
+  integrity sha512-2YvuMsA+jnFGtBareKqgANOEKe1mk3HKiXu2fRmAfyxG0MJAywNhi5ttWA3PMjl4NmpyjZNbFifR2vNjW1znfA==
   dependencies:
-    compress-brotli "^1.3.8"
     json-buffer "3.0.1"
 
 kind-of@^6.0.2, kind-of@^6.0.3:
