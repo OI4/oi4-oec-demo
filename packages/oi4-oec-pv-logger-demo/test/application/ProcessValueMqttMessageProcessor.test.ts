@@ -1,21 +1,21 @@
 import {LoggerItems, MockedLoggerFactory} from '../mock/MockedLoggerFactory';
-import {ServiceDemoMqttMessageProcessor} from '../../src/application/ServiceDemoMqttMessageProcessor';
 import {setLogger} from '@oi4/oi4-oec-service-logger';
 import {IOPCUANetworkMessage, Oi4Identifier, OPCUABuilder, ServiceTypes} from '@oi4/oi4-oec-service-opcua-model';
 import {Resource} from '@oi4/oi4-oec-service-model';
 import {IOI4Application, TopicMethods} from '@oi4/oi4-oec-service-node';
 import {TopicInfo} from '@oi4/oi4-oec-service-node';
 import fs from 'fs';
+import {ProcessValueMqttMessageProcessor} from '../../src/application/ProcessValueMqttMessageProcessor';
 
-describe('ServiceDemoMqttMessageProcessor.ts test', () => {
+describe('ProcessValueMqttMessageProcessor.test.ts', () => {
 
     const loggerItems: LoggerItems = MockedLoggerFactory.getLoggerItems();
     const fakeLogFile: Array<string> = loggerItems.fakeLogFile;
 
     const OI4_ID = Oi4Identifier.fromString('uri/model/productCode/serialNumber');
-    const message = fs.readFileSync(`${__dirname}/../__fixtures__/mamNetworkMessage.json`, 'utf-8');
-    const topic = `oi4/${ServiceTypes.OT_CONNECTOR}/acme.com/OEC%20Utility/OEC-ACME-UTILITY/my-device/${TopicMethods.PUB}/${Resource.MAM}/acme.com/rock_solid_weather_sensor/OEC-ACME-UTILITY/F12SN894`;
-    const processor = new ServiceDemoMqttMessageProcessor();
+    const message = fs.readFileSync(`${__dirname}/../__fixtures__/pvNetworkMessage.json`, 'utf-8');
+    const topic = `oi4/${ServiceTypes.OT_CONNECTOR}/acme.com/OEC%20Utility/OEC-ACME-UTILITY/my-device/${TopicMethods.PUB}/${Resource.DATA}/acme.com/rock_solid_weather_sensor/OEC-ACME-UTILITY/F12SN894/oi4_pv`;
+    const processor = new ProcessValueMqttMessageProcessor();
 
     const application: IOI4Application = {
         oi4Id: OI4_ID,
@@ -81,6 +81,6 @@ describe('ServiceDemoMqttMessageProcessor.ts test', () => {
 
     const assertLogs = () => {
         expect(fakeLogFile.length).toBe(1);
-        expect(fakeLogFile[0]).toBe(`Foreign message from: acme.com/OEC%2520Utility/OEC-ACME-UTILITY/my-device with messageId: 1658730472036-Utility/acme.com/OEC%20Utility/OEC-ACME-UTILITY/my-device`);
+        expect(fakeLogFile[0]).toBe(`Message received from oi4/OTConnector/acme.com/OEC%20Utility/OEC-ACME-UTILITY/my-device/pub/data/acme.com/rock_solid_weather_sensor/OEC-ACME-UTILITY/F12SN894/oi4_pv with values: {\"pv\":18.98,\"sv_1\":1020,\"sv_2\":46}`);
     };
 });
