@@ -12,7 +12,7 @@ The bash script `setenv.sh` will process the .env file and set the PAT as an env
 
 ## oi4-oec-service-demo
 
-The oi4-oec-service-demo service is demo connector to explain and understand the usage ot the [OI4 OEC service](https://github.com/OI4/oi4-service).
+The oi4-oec-service-demo service is a demo connector to explain and understand the usage ot the [OI4 OEC service](https://github.com/OI4/oi4-service).
 It simulates ambient sensors by querying the API of [OpenWeather](https://openweathermap.org).
 
 [***CLICK***](packages/oi4-oec-service-demo/README.md) for a detailed description of the service.
@@ -29,3 +29,9 @@ It logs OI4 PV messages send to the broker.
 The oi4-oec-node-red-demo contains a Node-RED flow, demonstrating the basics about Message Bus communication compliant to OI4 OEC Guideline. It does so by simulating an application and several devices. 
 
 [***CLICK***](packages/oi4-oec-node-red-demo/README.md) for a detailed description of the demo.
+
+## Demo Mosquitto broker
+
+For an easier testing of the service, there is a test / demo Mosquitto broker available at .mosquitto.
+Just run `./.mosquitto/start.sh
+`
