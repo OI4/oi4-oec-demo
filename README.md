@@ -17,6 +17,13 @@ It simulates ambient sensors by querying the API of [OpenWeather](https://openwe
 
 [***CLICK***](packages/oi4-oec-service-demo/README.md) for a detailed description of the service.
 
+## oi4-oec-pv-logger-demo
+
+The oi4-oec-pv-logger-demo service is a demo consumer to explain and understand the usage ot the [OI4 OEC service](https://github.com/OI4/oi4-service).
+It logs OI4 PV messages send to the broker.
+
+[***CLICK***](packages/oi4-oec-pv-logger-demo/README.md) for a detailed description of the service.
+
 ## oi4-oec-node-red-demo
 
 The oi4-oec-node-red-demo contains a Node-RED flow, demonstrating the basics about Message Bus communication compliant to OI4 OEC Guideline. It does so by simulating an application and several devices. 
