@@ -1,0 +1,19 @@
+{
+  "Manufacturer":{"locale":"en-US","text":"ACME Corporation"},
+  "ManufacturerUri":"acme.com",
+  "Model":{"locale":"en-US","text":"OOCC Demo"},
+  "ProductCode":"OEC-ACME-OOCC",
+  "HardwareRevision":"",
+  "SoftwareRevision":"1.0.0",
+  "DeviceRevision":"1.0.0",
+  "DeviceManual":"1.0",
+  "DeviceClass":"OOCConnector",
+  "SerialNumber":"F12AB41",
+  "ProductInstanceUri":"",
+  "RevisionCounter":0,
+  "Description":
+  {
+    "locale":"en-US",
+    "text":"An example OOCC service"
+  }
+}
