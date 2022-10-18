@@ -10,6 +10,20 @@ The PAT must have the 'read:packages'.
 The installation and build scripts will use the preconfigured .npmrc file to access the GitHub package repository. The PAT must be stored in the .env file in the project root with the key `PACKAGES_AUTH_TOKEN`. As the .env file is not always applied when using the console, the PAT should also be set as an environment variable.
 The bash script `setenv.sh` will process the .env file and set the PAT as an environment variable. On Linux based systems just run `source ./scripts/setenv.sh`.
 
+## oi4-oec-oocc-demo
+
+The oi4-oec-oocc-demo service is a demo consumer to explain and understand the usage ot the [OI4 OEC service](https://github.com/OI4/oi4-service).
+It converts 1.0 guideline conform messages from the message bus to 0.12 and publishes it to the corresponding endpoint.
+
+What should be done in the future?
+- Query the registry for all available mams
+- The service library should automatically create a publication list
+- The service library should automatically create a subscription list
+- Add license profile
+- Events are not supported fully yet
+
+[***CLICK***](packages/oi4-oec-oocc-demo/README.md) for a detailed description of the service.
+
 ## oi4-oec-service-demo
 
 The oi4-oec-service-demo service is a demo connector to explain and understand the usage ot the [OI4 OEC service](https://github.com/OI4/oi4-service).
