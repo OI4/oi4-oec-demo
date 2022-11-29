@@ -6,7 +6,7 @@
     {
       "DataSetWriterId": 4,
       "Timestamp": "2022-09-21T14:28:45.048Z",
-      "subResource": "acme.com/rock_solid_weather_sensor/OEC-ACME-UTILITY/F12SN999",
+      "Resource": "acme.com/rock_solid_weather_sensor/OEC-ACME-UTILITY/F12SN999",
       "Payload": {
         "pv": 18.98,
         "sv_1": 1020,
@@ -16,14 +16,14 @@
     {
       "DataSetWriterId": 40,
       "Timestamp": "2022-09-21T14:28:45.048Z",
-      "subResource": "acme.com/OEC%20Demo%20OT%20Connector/OEC-ACME-WEATHER-CONNECTOR/oi4-oec-pv-logger-demo",
+      "Resource": "acme.com/OEC%20Demo%20OT%20Connector/OEC-ACME-WEATHER-CONNECTOR/oi4-oec-pv-logger-demo",
       "Payload": {
-        "totalCount": 1,
-        "perPage": 1,
-        "page": 1,
-        "hasNext": false
+        "TotalCount": 1,
+        "PerPage": 1,
+        "Page": 1,
+        "HasNext": false
       }
     }
   ],
-  "correlationId": ""
+  "CorrelationId": ""
 }

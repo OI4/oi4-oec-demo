@@ -1,4 +1,4 @@
-import {DEFAULT_MAM_FILE, DefaultSettingsPaths, ISettingsPaths, OI4ApplicationFactory, OI4ApplicationResources} from '@oi4/oi4-oec-service-node';
+import {defaultMAMFile, defaultSettingsPaths, ISettingsPaths, OI4ApplicationFactory, OI4ApplicationResources} from '@oi4/oi4-oec-service-node';
 import {ProcessValueMqttMessageProcessor} from './application/ProcessValueMqttMessageProcessor';
 import {ProcessValueOI4ApplicationBuilder} from './application/ProcessValueOI4ApplicationBuilder';
 const basePath =  process.env.BASE_PATH || './docker_configs';
@@ -27,10 +27,10 @@ export const IS_LOCAL = process.argv.length > 2 && process.argv[2] === 'local';
 
 const PV_TOPIC = 'oi4/+/+/+/+/+/pub/data/+/+/+/+/oi4_pv';
 
-const paths: ISettingsPaths = IS_LOCAL ? LocalTestPaths : DefaultSettingsPaths;
+const paths: ISettingsPaths = IS_LOCAL ? LocalTestPaths : defaultSettingsPaths;
 
 const processor = new ProcessValueMqttMessageProcessor();
-const getMamFileLocation = (isLocal: boolean) => isLocal ? `${basePath}/config/mam.json` : DEFAULT_MAM_FILE;
+const getMamFileLocation = (isLocal: boolean) => isLocal ? `${basePath}/config/mam.json` : defaultMAMFile;
 const applicationResources = new OI4ApplicationResources(getMamFileLocation(IS_LOCAL));
 const appFactory = new OI4ApplicationFactory(applicationResources, paths);
 appFactory.mqttMessageProcessor = processor;

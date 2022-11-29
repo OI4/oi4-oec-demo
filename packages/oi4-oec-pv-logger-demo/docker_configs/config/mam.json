@@ -1,7 +1,7 @@
 {
-  "Manufacturer":{"locale":"en-US","text":"ACME Corporation"},
+  "Manufacturer":{"Locale":"en-US","Text":"ACME Corporation"},
   "ManufacturerUri":"acme.com",
-  "Model":{"locale":"en-US","text":"OEC Demo PV logger"},
+  "Model":{"Locale":"en-US","Text":"OEC Demo PV logger"},
   "ProductCode":"OEC-ACME-PV-LOGGER",
   "HardwareRevision":"",
   "SoftwareRevision":"0.12.1",
@@ -13,7 +13,7 @@
   "RevisionCounter":0,
   "Description":
   {
-    "locale":"en-US",
-    "text":"An example OI4 service"
+    "Locale":"en-US",
+    "Text":"An example OI4 service"
   }
 }

@@ -1,7 +1,7 @@
 {
-  "Manufacturer":{"locale":"en-US","text":"ACME Corporation"},
+  "Manufacturer":{"Locale":"en-US","Text":"ACME Corporation"},
   "ManufacturerUri":"acme.com",
-  "Model":{"locale":"en-US","text":"rock_solid_weather_sensor"},
+  "Model":{"Locale":"en-US","Text":"rock_solid_weather_sensor"},
   "ProductCode":"OEC-ACME-UTILITY",
   "HardwareRevision":"N/A",
   "SoftwareRevision":"0.12.1",
@@ -13,8 +13,8 @@
   "RevisionCounter":0,
   "Description":
   {
-    "locale":"en-US",
-    "text":"Rock solid weather sensor located in Freiburg"
+    "Locale":"en-US",
+    "Text":"Rock solid weather sensor located in Freiburg"
   },
   "location": {
     "longitude": 7.8522,

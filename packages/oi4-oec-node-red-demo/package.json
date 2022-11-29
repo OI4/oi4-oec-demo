@@ -10,7 +10,6 @@
     "oec",
     "node-red"
   ],
-  "license": "MIT",
   "scripts": {
     "start": "node-red --settings lib/settings.js",
     "test": "echo \"Error: run tests from root\""
