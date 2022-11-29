@@ -1,10 +1,6 @@
-import {DefaultSettingsPaths, ISettingsPaths, OI4ApplicationFactory,} from '@oi4/oi4-oec-service-node';
-import {ServiceDemoOI4ApplicationResources} from './application/ServiceDemoOI4ApplicationResources';
-import {ServiceDemoOI4ApplicationBuilder} from "./application/ServiceDemoOI4ApplicationBuilder";
-
-export {WeatherService} from './weather/WeatherService';
-export * from './weather/WeatherServiceModel';
-
+import {DEFAULT_MAM_FILE, DefaultSettingsPaths, ISettingsPaths, OI4ApplicationFactory, OI4ApplicationResources} from '@oi4/oi4-oec-service-node';
+import {ProcessValueMqttMessageProcessor} from './application/ProcessValueMqttMessageProcessor';
+import {ProcessValueOI4ApplicationBuilder} from './application/ProcessValueOI4ApplicationBuilder';
 const basePath =  process.env.BASE_PATH || './docker_configs';
 
 const LocalTestPaths: ISettingsPaths = {
@@ -29,11 +25,17 @@ const LocalTestPaths: ISettingsPaths = {
 
 export const IS_LOCAL = process.argv.length > 2 && process.argv[2] === 'local';
 
-const paths: ISettingsPaths = IS_LOCAL ? LocalTestPaths : DefaultSettingsPaths;
-const applicationResources = new ServiceDemoOI4ApplicationResources(IS_LOCAL, paths);
-const builder = new ServiceDemoOI4ApplicationBuilder().withAppid(paths);
-const applicationFactory = new OI4ApplicationFactory(applicationResources, paths).initialize(builder);
+const PV_TOPIC = 'oi4/+/+/+/+/+/pub/data/+/+/+/+/oi4_pv';
 
-applicationFactory.createOI4Application();
+const paths: ISettingsPaths = IS_LOCAL ? LocalTestPaths : DefaultSettingsPaths;
+
+const processor = new ProcessValueMqttMessageProcessor();
+const getMamFileLocation = (isLocal: boolean) => isLocal ? `${basePath}/config/mam.json` : DEFAULT_MAM_FILE;
+const applicationResources = new OI4ApplicationResources(getMamFileLocation(IS_LOCAL));
+const appFactory = new OI4ApplicationFactory(applicationResources, paths);
+appFactory.mqttMessageProcessor = processor;
+appFactory.initialize(new ProcessValueOI4ApplicationBuilder());
+const oi4App = appFactory.createOI4Application();
+oi4App.addSubscription(PV_TOPIC).then();
 
 console.log('|=========== FINISHED initiating Service Demo ============|');
