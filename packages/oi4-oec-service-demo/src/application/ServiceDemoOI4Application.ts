@@ -5,8 +5,7 @@ import {
     MqttSettings,
     OI4Application
 } from '@oi4/oi4-oec-service-node';
-import {IOI4ApplicationResources, OI4Payload, Resources} from '@oi4/oi4-oec-service-model';
-import {OPCUABuilder} from '@oi4/oi4-oec-service-opcua-model';
+import {IOI4ApplicationResources, OI4Payload, Resources, OPCUABuilder} from '@oi4/oi4-oec-service-model';
 import {ServiceDemoOI4ApplicationResources} from './ServiceDemoOI4ApplicationResources';
 import {WeatherService} from '../weather/WeatherService';
 import {Coordinates} from '../weather/WeatherServiceModel';

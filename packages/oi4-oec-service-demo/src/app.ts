@@ -1,4 +1,4 @@
-import {DefaultSettingsPaths, ISettingsPaths, OI4ApplicationFactory,} from '@oi4/oi4-oec-service-node';
+import {defaultSettingsPaths, ISettingsPaths, OI4ApplicationFactory,} from '@oi4/oi4-oec-service-node';
 import {ServiceDemoOI4ApplicationResources} from './application/ServiceDemoOI4ApplicationResources';
 import {ServiceDemoOI4ApplicationBuilder} from "./application/ServiceDemoOI4ApplicationBuilder";
 
@@ -29,7 +29,7 @@ const LocalTestPaths: ISettingsPaths = {
 
 export const IS_LOCAL = process.argv.length > 2 && process.argv[2] === 'local';
 
-const paths: ISettingsPaths = IS_LOCAL ? LocalTestPaths : DefaultSettingsPaths;
+const paths: ISettingsPaths = IS_LOCAL ? LocalTestPaths : defaultSettingsPaths;
 const applicationResources = new ServiceDemoOI4ApplicationResources(IS_LOCAL, paths);
 const builder = new ServiceDemoOI4ApplicationBuilder().withAppid(paths);
 const applicationFactory = new OI4ApplicationFactory(applicationResources, paths).initialize(builder);

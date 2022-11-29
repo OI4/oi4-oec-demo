@@ -1,4 +1,4 @@
-import {OI4ApplicationResources, DEFAULT_MAM_FILE, ISettingsPaths} from '@oi4/oi4-oec-service-node';
+import {OI4ApplicationResources, defaultMAMFile, ISettingsPaths} from '@oi4/oi4-oec-service-node';
 import fs from 'fs';
 import {Asset} from './AssetModel';
 import {initializeLogger, LOGGER} from '@oi4/oi4-oec-service-logger';
@@ -7,7 +7,7 @@ import {ESyslogEventFilter} from '@oi4/oi4-oec-service-model';
 import {getServiceType} from '@oi4/oi4-oec-service-opcua-model';
 
 const basePath =  process.env.BASE_PATH || './docker_configs';
-const getMamFileLocation = (isLocal: boolean) => isLocal ? `${basePath}/config/mam.json` : DEFAULT_MAM_FILE;
+const getMamFileLocation = (isLocal: boolean) => isLocal ? `${basePath}/config/mam.json` : defaultMAMFile;
 
 export class ServiceDemoOI4ApplicationResources extends OI4ApplicationResources {
 
