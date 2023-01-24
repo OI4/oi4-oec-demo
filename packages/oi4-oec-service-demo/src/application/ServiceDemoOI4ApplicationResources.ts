@@ -1,7 +1,7 @@
 import {OI4ApplicationResources, defaultMAMFile, ISettingsPaths} from '@oi4/oi4-oec-service-node';
 import fs from 'fs';
 import {Asset} from './AssetModel';
-import {initializeLogger, LOGGER} from '@oi4/oi4-oec-service-logger';
+import {initializeLogger, logger} from '@oi4/oi4-oec-service-logger';
 import {OI4Resource} from '@oi4/oi4-oec-service-node/dist/application/OI4Resource';
 import {ESyslogEventFilter} from '@oi4/oi4-oec-service-model';
 import {getServiceType} from '@oi4/oi4-oec-service-opcua-model';
@@ -30,7 +30,7 @@ export class ServiceDemoOI4ApplicationResources extends OI4ApplicationResources 
             try {
                 return Asset.clone(JSON.parse(fs.readFileSync(`${assetFolder}/${file}`, 'utf-8')) as Asset);
             } catch (error) {
-                LOGGER.log(`File ${file} is not a valid asset file and is skipped`);
+                logger.log(`File ${file} is not a valid asset file and is skipped`);
                 return undefined;
             }
         }).filter(asset => asset !== undefined);
@@ -42,7 +42,7 @@ export class ServiceDemoOI4ApplicationResources extends OI4ApplicationResources 
     }
 
     initializeLogger(): void {
-        if(LOGGER === undefined) {
+        if(logger === undefined) {
             const publishingLevel: ESyslogEventFilter = process.env.OI4_EDGE_EVENT_LEVEL as ESyslogEventFilter | ESyslogEventFilter.warning;
             const logLevel = process.env.OI4_EDGE_LOG_LEVEL ? process.env.OI4_EDGE_LOG_LEVEL as ESyslogEventFilter : publishingLevel;
             initializeLogger(true, undefined, logLevel, publishingLevel, this.oi4Id, getServiceType(this.mam.DeviceClass));
