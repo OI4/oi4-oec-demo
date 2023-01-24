@@ -3,7 +3,7 @@
 import {LoggerItems, MockedLoggerFactory} from '../mock/MockedLoggerFactory';
 // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
 // @ts-ignore
-import {ProcessValueMqttMessageProcessor} from '../../src/application/ProcessValueMqttMessageProcessor';
+import {ProcessValueMqttMessageProcessor} from '../../src/application/ProcessValueMessageListener';
 import {setLogger} from '@oi4/oi4-oec-service-logger';
 import {Resources, Methods, IOPCUANetworkMessage, Oi4Identifier, OPCUABuilder, ServiceTypes} from '@oi4/oi4-oec-service-model';
 import {IOI4Application, oi4Namespace} from '@oi4/oi4-oec-service-node';
