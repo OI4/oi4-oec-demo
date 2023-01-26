@@ -1,11 +1,11 @@
-import {SubscriptionListConfig} from '@oi4/oi4-oec-service-model';
+import {Methods, Resources, SubscriptionListConfig} from '@oi4/oi4-oec-service-model';
 import {
     defaultMAMFile,
     defaultSettingsPaths,
     foreignMessage,
     ISettingsPaths,
     OI4ApplicationFactory,
-    OI4ApplicationResources
+    OI4ApplicationResources, oi4Namespace
 } from '@oi4/oi4-oec-service-node';
 import {listener} from './application/ProcessValueMessageListener';
 import {ProcessValueOI4ApplicationBuilder} from './application/ProcessValueOI4ApplicationBuilder';
@@ -34,7 +34,7 @@ const LocalTestPaths: ISettingsPaths = {
 
 export const IS_LOCAL = process.argv.length > 2 && process.argv[2] === 'local';
 
-const PV_TOPIC = 'oi4/+/+/+/+/+/pub/data/+/+/+/+/oi4_pv';
+const PV_TOPIC = `${oi4Namespace}/+/+/+/+/+/${Methods.PUB}/${Resources.DATA}/+/+/+/+/oi4_pv`;
 
 const paths: ISettingsPaths = IS_LOCAL ? LocalTestPaths : defaultSettingsPaths;
 
