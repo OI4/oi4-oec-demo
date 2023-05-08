@@ -103,6 +103,10 @@ dist
 # oi4-oec-service-demo docker configs
 /packages/oec-service-demo/docker_configs/
 
+# oi4-oec-pki-demo
+.srl
+/packages/oi4-oec-pki-demo/build/
+
 # Custom
 out
 .vscode
