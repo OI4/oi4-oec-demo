@@ -27,10 +27,10 @@ const LocalTestPaths: ISettingsPaths = {
     }
 }
 
-export const IS_LOCAL = process.argv.length > 2 && process.argv[2] === 'local';
+export const isLocal = process.argv.length > 2 && process.argv[2] === 'local';
 
-const paths: ISettingsPaths = IS_LOCAL ? LocalTestPaths : defaultSettingsPaths;
-const applicationResources = new ServiceDemoOI4ApplicationResources(IS_LOCAL, paths);
+const paths: ISettingsPaths = isLocal ? LocalTestPaths : defaultSettingsPaths;
+const applicationResources = new ServiceDemoOI4ApplicationResources(isLocal, paths);
 const builder = new ServiceDemoOI4ApplicationBuilder().withAppid(paths);
 const applicationFactory = new OI4ApplicationFactory(applicationResources, paths).initialize(builder);
 
