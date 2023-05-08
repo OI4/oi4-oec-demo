@@ -114,3 +114,4 @@ out
 /oi4-service.iml
 .DS_Store
 ./prepare.sh
+/packages/oi4-oec-pki-demo/pki/
