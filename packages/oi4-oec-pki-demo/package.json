@@ -23,6 +23,6 @@
     "revokeCertificate": "./scripts/simple_pki.sh revoke_certificate",
     "issueSubCA": "./scripts/simple_pki.sh issue_sub_ca",
     "revokeSubCA": "./scripts/simple_pki.sh revoke_sub_ca",
-    "issueRootCA": "./scripts/simple_pki.sh create_root_ca "
+    "createRootCA": "./scripts/simple_pki.sh create_root_ca "
   }
 }

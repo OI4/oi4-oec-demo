@@ -9,15 +9,16 @@ do
     export "$KEY"="$VALUE"
 done
 
-WORK_DIR=./build/$OI4_SERVICE
+WORK_DIR="${WORK_DIR:-./build/$OI4_SERVICE}"
 PKI_DIR="${PKI_DIR:-./pki}"
 PKI_ROOT_KEY="${PKI_ROOT_KEY:-root/oi4-oec-pki-demo-root-ca.key}"
 PKI_ROOT_CERT="${PKI_ROOT_CERT:-root/oi4-oec-pki-demo-root-ca.pem}"
 PKI_ROOT_SERIAL="${PKI_ROOT_SERIAL:-root/oi4-oec-pki-demo-root-ca.srl}"
+PKI_ROOT_CRL="${PKI_SUB_SERIAL:-root/oi4-oec-pki-demo-root-ca.crl}"
 PKI_SUB_KEY="${PKI_SUB_KEY:-ca1/oi4-oec-pki-demo-sub-ca.key}"
 PKI_SUB_CERT="${PKI_SUB_CERT:-ca1/oi4-oec-pki-demo-sub-ca.pem}"
 PKI_SUB_SERIAL="${PKI_SUB_SERIAL:-ca1/oi4-oec-pki-demo-sub-ca.srl}"
-VALIDITY="${VALIDITY:-730}"
+PKI_SUB_CRL="${PKI_SUB_SERIAL:-ca1/oi4-oec-pki-demo-sub-ca.crl}"
 
 OPERATION="${1:-issue_certificate}"
 
@@ -61,7 +62,7 @@ issueSubCertificate(){
   -subj "/C=$COUNTRY/ST=$STATE/L=$LOCALITY_NAME/O=$ORGANIZATION/OU=$ORGANIZATIONAL_UNIT/CN=$COMMON_NAME"
 
   CERT="$PKI_ROOT/$OI4_SERVICE-sub-ca.pem"
-  openssl x509 -req -in "$CSR" -CA "$PKI_DIR/$PKI_ROOT_CERT" -CAkey "$PKI_DIR/$PKI_ROOT_KEY" -CAcreateserial -out "$CERT" -days "$VALIDITY" -sha256 \
+  openssl x509 -req -in "$CSR" -CA "$PKI_DIR/$PKI_ROOT_CERT" -CAkey "$PKI_DIR/$PKI_ROOT_KEY" -out "$CERT" -days "$VALIDITY" -sha256 \
   -extfile ./config/certificate_extensions.cfg -extensions sub_ca \
   -CAserial "$PKI_DIR/$PKI_ROOT_SERIAL" -CAcreateserial
 
@@ -82,7 +83,7 @@ issueCertificate(){
   -subj "/C=$COUNTRY/ST=$STATE/L=$LOCALITY_NAME/O=$ORGANIZATION/OU=$ORGANIZATIONAL_UNIT/CN=$COMMON_NAME"
 
   CERT="$WORK_DIR/$OI4_SERVICE.pem"
-  openssl x509 -req -in "$CSR" -CA "$PKI_DIR/$PKI_SUB_CERT" -CAkey "$PKI_DIR/$PKI_SUB_KEY" -CAcreateserial -out "$CERT" -days "$VALIDITY" -sha256 \
+  openssl x509 -req -in "$CSR" -CA "$PKI_DIR/$PKI_SUB_CERT" -CAkey "$PKI_DIR/$PKI_SUB_KEY" -out "$CERT" -days "$VALIDITY" -sha256 \
   -extfile ./config/certificate_extensions.cfg -extensions client_certificate \
   -CAserial "$PKI_DIR/$PKI_SUB_SERIAL" -CAcreateserial
 
@@ -95,7 +96,7 @@ revokeSubCa(){
   openssl ca -config ./config/certificate_configuration.cfg -name root_revoke -revoke "$CERT"
   printf "Certificate %s revoked\\n" "$CERT"
 
-  CRL="$PKI_DIR/root/oi4-oec-pki-demo-root-ca.crl"
+  CRL="$PKI_DIR/$PKI_ROOT_CRL"
   openssl ca -config ./config/certificate_configuration.cfg -name root_revoke -gencrl -out "$CRL"
   printf "CRL %s created/updated\\n" "CRL"
 }
@@ -105,20 +106,23 @@ revokeCertificate(){
     openssl ca -config ./config/certificate_configuration.cfg -name sub_ca_revoke -revoke "$CERT"
     printf "Certificate %s revoked\\n" "$CERT"
 
-    CRL="$PKI_DIR/ca1/oi4-oec-pki-demo-root-ca.crl"
+    CRL="$PKI_DIR/$PKI_SUB_CRL"
     openssl ca -config ./config/certificate_configuration.cfg -name sub_ca_revoke -gencrl -out "$CRL"
     printf "CRL %s created/updated\\n" "CRL"
 }
 
 
 if [ "$OPERATION" == "create_root_ca" ];then
+    VALIDITY="${VALIDITY:-3650}"
     createRootCa
 elif [ "$OPERATION" == "issue_sub_ca" ];then
+    VALIDITY="${VALIDITY:-1825}"
     issueSubCertificate
 elif [ "$OPERATION" == "revoke_sub_ca" ];then
     revokeSubCa
 elif [ "$OPERATION" == "revoke_certificate" ];then
     revokeCertificate "$2"
 else
+    VALIDITY="${VALIDITY:-730}"
     issueCertificate
 fi
