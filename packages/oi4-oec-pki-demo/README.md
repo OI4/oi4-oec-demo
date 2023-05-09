@@ -3,7 +3,7 @@
 | :exclamation: This PKI is for demo and evaluation purposes only! Do not use is any (productive) environment :exclamation: |
 |---------------------------------------------------------------------------------------------------------------------------|
 
-[tl:dr](#headerUsage)
+[tl:dr](#Usage)
 
 Security is one of the major concerns of the OI4 alliance. Securing connections, validating server and services is vital for IIoT.
 Certificates are widely used for authentication, authorization and encryption. 
@@ -21,7 +21,7 @@ In typical real life IIoT projects, there is (or shall be) a PKI already availab
 The whole functionality of this 'PKI' is based on [OpenSSL](https://www.openssl.org) and Bash.
 The pre-generated CAs and the broker certificate can be used without any tooling. 
 To issue new or revoke existing certificates or to set up CAs you can either use the bash script or use OpenSSL directly.
-The OpenSSL commands are explained [here](#headerOpenSSLCommands) as well
+The OpenSSL commands are explained [here](#OpenSSL commands) as well
 
 ### PKI architecture
 
@@ -49,7 +49,7 @@ extendedKeyUsage = critical, serverAuth, clientAuth
 
 For details about the individual usage types, please see the x509 specification. Basically root and sub CA can be exclusively used for certificate signing and revocation, whereas entity certificates can be used for client and server authentication.
 
-## <a name="headerUsage"></a>Usage
+## Usage
 
 All operations are covered in the `scripts/simple_pki.sh` bash script and available as yarn scripts:
  - Issue entity certificate: `yarn run issueCertificate`
@@ -154,7 +154,7 @@ Parameters:
 
 This command is going to issue a self-signed certificate to be used as root CA with a validity of 10 years.
 
-## <a name="headerOpenSSLCommands"></a>OpenSSL commands
+## OpenSSL commands
 
 OpenSSL covers all the needed functionality to generate keys, issue and revoke certificate. 
 OpenSSL defines many operations that are partially overlapping. Beside of the commands the OpenSSL takes some settings out of the [configuration](config%2Fcertificate_configuration.cfg) and [extensions](config%2Fcertificate_extensions.cfg) files.
