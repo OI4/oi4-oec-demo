@@ -1,7 +1,7 @@
 # OI4 Open Edge Computing Demo PKI
 
-| :exclamation:  This PKI is for demo and evaluation purposes only! Do not use is any (productive) environment! |
-|---------------------------------------------------------------------------------------------------------------|
+| :exclamation: This PKI is for demo and evaluation purposes only! Do not use is any (productive) environment :exclamation: |
+|---------------------------------------------------------------------------------------------------------------------------|
 
 [tl:dr](#headerUsage)
 
