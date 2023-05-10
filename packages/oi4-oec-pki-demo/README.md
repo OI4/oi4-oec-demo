@@ -21,7 +21,7 @@ In typical real life IIoT projects, there is (or shall be) a PKI already availab
 The whole functionality of this 'PKI' is based on [OpenSSL](https://www.openssl.org) and Bash.
 The pre-generated CAs and the broker certificate can be used without any tooling. 
 To issue new or revoke existing certificates or to set up CAs you can either use the bash script or use OpenSSL directly.
-The OpenSSL commands are explained [here](#OpenSSL&#32;commands) as well
+The OpenSSL commands are explained [here](#OpenSSL%20commands) as well
 
 ### PKI architecture
 
