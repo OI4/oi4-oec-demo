@@ -5,9 +5,9 @@ RUN apk add --update openssl && rm -rf /var/cache/apk/*
 
 # -------COPY resources
 WORKDIR /usr
-COPY ./build/container ./oi4-oec-pv-logger-demo
+COPY ./build/container ./oi4-oec-service-demo
 
-WORKDIR /usr/oi4-oec-pv-logger-demo
+WORKDIR /usr/oi4-oec-service-demo
 
 # COPY logs directory
 RUN mkdir -p logs

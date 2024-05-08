@@ -64,5 +64,9 @@ There is also yarn script doing the same thing. Just run `yarn run testLocal`
 
 ### Run the service as docker container
 The main intention of the service is to run as docker container, of course. As every OI4 OEC service this service need a couple of mounted files and directories.
-The easiest way to run the container is with the help of the [docker-compose file](docker_configs/docker-compose.yml).
-All you need to do is to adjust the host location of the volumes and run `docker compose up -d`.
+The easiest way to run te container is with the help of the prepared docker configuration.
+```shell
+yarn run unZip
+cd docker/oi4-oec-pv-logger-demo
+docker compose up -d
+```
