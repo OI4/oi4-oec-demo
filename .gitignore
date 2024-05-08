@@ -115,3 +115,5 @@ out
 .DS_Store
 ./prepare.sh
 /packages/oi4-oec-pki-demo/pki/
+/packages/oi4-oec-service-demo/docker/
+/packages/oi4-oec-service-demo/build/

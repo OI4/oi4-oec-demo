@@ -1,6 +1,6 @@
 {
   "name": "@oi4/oi4-oec-pki-demo",
-  "version": "1.0.0-preview.2",
+  "version": "1.1.0-preview.2",
   "description": "Simple PKI for demo usage. THIS IS NOT SECURE! DO NOT USE IT FOR SOMETHING ELSE THAN TESTING!",
   "author": "Open Industry 4.0 Alliance - Community",
   "license": "MIT",
