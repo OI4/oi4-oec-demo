@@ -1,0 +1,24 @@
+version: '3.9'
+
+services:
+  oi4-oec-broker:
+    image: eclipse-mosquitto:2.0.10
+    container_name: oi4-oec-broker
+    restart: on-failure
+    volumes:
+      - "${BASE_PATH}/config:/mosquitto/config"
+      - "${BASE_PATH}/data:/mosquitto/data"
+      - "${BASE_PATH}/log:/mosquitto/log"
+    ports:
+      - "${MQTT_TLS_PORT}:8883"
+    environment:
+      - TZ=${TZ}
+    networks:
+      oi4:
+        aliases:
+          - oi4-broker
+
+networks:
+  oi4:
+    driver: bridge
+    name: oi4

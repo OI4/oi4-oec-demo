@@ -10,7 +10,7 @@ const basePath =  process.env.BASE_PATH || './docker_configs';
 const LocalTestPaths: ISettingsPaths = {
     mqttSettings: {
         brokerConfig: `${basePath}/mqtt/broker.json`,
-        caCertificate: `${basePath}/docker_configs/certs/ca.pem`,
+        caCertificate: `${basePath}/certs/ca.pem`,
         // privateKey: `${basePath}/secrets/mqtt_private_key.pem`,
         privateKey: undefined,
         // clientCertificate: `${basePath}/certs/oi4-oec-service-demo.pem`,

@@ -1,6 +1,6 @@
 {
   "name": "@oi4/oi4-oec-pv-logger-demo",
-  "version": "1.0.0-preview.2",
+  "version": "1.1.0-preview.2",
   "description": "An OI4-compliant demo application showing the use as a data consumer",
   "author": "Open Industry 4.0 Alliance - Community",
   "license": "MIT",
@@ -21,10 +21,11 @@
     "url": "git@github.com:OI4/oi4-oec-demo.git"
   },
   "dependencies": {
-    "@oi4/oi4-oec-service-node": "^1.1.0-preview.3",
+    "@oi4/oi4-oec-service-node": "^1.1.0-preview.12",
     "@types/ws": "^8.5.2",
     "axios": "^0.27.2",
-    "ajv": "^6.12.6",
+    "ajv": "^8.12.0",
+    "ajv-formats": "^2.1.1",
     "async-mqtt": "^2.6.2",
     "cors": "^2.8.5",
     "dotenv": "^16.0.0",
@@ -51,8 +52,8 @@
     "test": "jest ",
     "copy:dependencies": "source ./scripts/setenv.sh && bash ./scripts/copy_dependencies.sh &&",
     "docker:prepare": "docker buildx create --name oi4-builder --driver docker-container --use --platform linux/amd64,linux/arm64,linux/arm/v7,linux/arm/v6,linux/386",
-    "docker:build:local": "docker build -t oi4/oi4-oec-pv-logger-demo:${npm_package_version} -t oi4/oi4-oec-pv-logger-demo:latest --build-arg PACKAGES_AUTH_TOKEN=${PACKAGES_AUTH_TOKEN} .",
-    "docker:build:snapshot": "docker build -t oi4/oi4-oec-pv-logger-demo:${npm_package_version} -t oi4/oi4-oec-pv-logger-demo:latest --build-arg PACKAGES_AUTH_TOKEN=${PACKAGES_AUTH_TOKEN} --build-arg BUILD_ENV=snapshot .",
+    "docker:build:local": "docker build -t oi4/oi4-oec-pv-logger-demo:${npm_package_version} -t oi4/oi4-oec-pv-logger-demo:latest .",
+    "docker:build:snapshot": "docker build -t oi4/oi4-oec-pv-logger-demo:${npm_package_version} -t oi4/oi4-oec-pv-logger-demo:latest --build-arg BUILD_ENV=snapshot .",
     "testLocal": "chmod ug+x ./scripts/test-local.sh && ./scripts/test-local.sh"
   }
 }
