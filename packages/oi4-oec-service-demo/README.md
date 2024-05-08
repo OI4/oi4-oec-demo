@@ -92,6 +92,7 @@ The main intention of the service is to run as docker container, of course. As e
 The easiest way to run te container is with the help of the prepared docker configuration.
 ```shell
 yarn run unZip
+cd docker/oi4-oec-service-demo
 ```
 is going to unzip the docker.zip file to the docker directory. The docker directory contains all needed files and directories to run the service as docker container.
 All you need to do is to add the API key, created above to the file at docker -> app -> app.json -> appid and run `docker compose up -d`.

@@ -13,7 +13,7 @@ const LocalTestPaths: ISettingsPaths = {
         caCertificate: `${basePath}/certs/ca.pem`,
         // privateKey: `${basePath}/secrets/mqtt_private_key.pem`,
         privateKey: undefined,
-        // clientCertificate: `${basePath}/certs/oi4-oec-service-demo.pem`,
+        // clientCertificate: `${basePath}/certs/oi4-oec-pv-logger-demo.pem`,
         clientCertificate: undefined,
         // passphrase: `${basePath}/secrets/mqtt_passphrase`,
         passphrase: undefined,

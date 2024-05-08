@@ -3,7 +3,7 @@ version: '3.9'
 services:
   oi4-oec-broker:
     image: eclipse-mosquitto:2.0.10
-    container_name: oi4-oec-broker
+    container_name: oi4-oec-oi4-oec-broker
     restart: on-failure
     volumes:
       - "${BASE_PATH}/config:/mosquitto/config"
@@ -16,7 +16,7 @@ services:
     networks:
       oi4:
         aliases:
-          - oi4-broker
+          - oi4-oi4-oec-broker
 
 networks:
   oi4:
