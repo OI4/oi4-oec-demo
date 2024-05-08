@@ -9,14 +9,15 @@ import {IOI4ApplicationResources, OI4Payload, Resources, OPCUABuilder} from '@oi
 import {ServiceDemoOI4ApplicationResources} from './ServiceDemoOI4ApplicationResources';
 import {WeatherService} from '../weather/WeatherService';
 import {Coordinates} from '../weather/WeatherServiceModel';
+import {IOI4MessageBus} from '@oi4/oi4-oec-service-node/src/messaging/OI4MessageBus';
 
 export class ServiceDemoOI4Application extends OI4Application {
 
     dataSendInterval: number = 60000;
     private readonly weatherService;
 
-    constructor(applicationResources: IOI4ApplicationResources, mqttSettings: MqttSettings, opcUaBuilder: OPCUABuilder, clientPayloadHelper: ClientPayloadHelper, clientCallbacksHelper: ClientCallbacksHelper, mqttMessageProcessor: MqttMessageProcessor, appid: string) {
-        super(applicationResources, mqttSettings, opcUaBuilder, clientPayloadHelper, clientCallbacksHelper, mqttMessageProcessor);
+    constructor(applicationResources: IOI4ApplicationResources, messageBus: IOI4MessageBus, mqttSettings: MqttSettings, opcUaBuilder: OPCUABuilder, clientPayloadHelper: ClientPayloadHelper, clientCallbacksHelper: ClientCallbacksHelper, mqttMessageProcessor: MqttMessageProcessor, appid: string) {
+        super(applicationResources, messageBus, mqttSettings, opcUaBuilder, clientPayloadHelper, clientCallbacksHelper, mqttMessageProcessor);
         this.weatherService = new WeatherService(appid);
         this.initDataPublishing();
     }

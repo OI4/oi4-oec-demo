@@ -18,6 +18,6 @@ export class ServiceDemoOI4ApplicationBuilder extends OI4ApplicationBuilder {
     }
 
     protected newOI4Application() {
-        return new ServiceDemoOI4Application(this.applicationResources, this.mqttSettings, this.opcUaBuilder, this.clientPayloadHelper, this.clientCallbacksHelper, this.mqttMessageProcessor, this.appid);
+        return new ServiceDemoOI4Application(this.applicationResources, this.messageBus, this.mqttSettings, this.opcUaBuilder, this.clientPayloadHelper, this.clientCallbacksHelper, this.mqttMessageProcessor, this.appid);
     }
 }

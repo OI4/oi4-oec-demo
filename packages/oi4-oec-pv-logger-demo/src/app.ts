@@ -1,7 +1,16 @@
-import {defaultMAMFile, defaultSettingsPaths, ISettingsPaths, OI4ApplicationFactory, OI4ApplicationResources} from '@oi4/oi4-oec-service-node';
-import {ProcessValueMqttMessageProcessor} from './application/ProcessValueMqttMessageProcessor';
+import {Methods, Resources, SubscriptionListConfig} from '@oi4/oi4-oec-service-model';
+import {
+    defaultMAMFile,
+    defaultSettingsPaths,
+    foreignMessage,
+    ISettingsPaths,
+    OI4ApplicationFactory,
+    OI4ApplicationResources, oi4Namespace
+} from '@oi4/oi4-oec-service-node';
+import {listener} from './application/ProcessValueMessageListener';
 import {ProcessValueOI4ApplicationBuilder} from './application/ProcessValueOI4ApplicationBuilder';
-const basePath =  process.env.BASE_PATH || './docker_configs';
+
+const basePath = process.env.BASE_PATH || './docker_configs';
 
 const LocalTestPaths: ISettingsPaths = {
     mqttSettings: {
@@ -9,7 +18,7 @@ const LocalTestPaths: ISettingsPaths = {
         caCertificate: `${basePath}/docker_configs/certs/ca.pem`,
         // privateKey: `${basePath}/secrets/mqtt_private_key.pem`,
         privateKey: undefined,
-        // clientCertificate: `${basePath}/certs/oi4-oec-service-demo.pem`,
+        // clientCertificate: `${basePath}/certs/oi4-oec-pv-logger-demo.pem`,
         clientCertificate: undefined,
         // passphrase: `${basePath}/secrets/mqtt_passphrase`,
         passphrase: undefined,
@@ -25,17 +34,14 @@ const LocalTestPaths: ISettingsPaths = {
 
 export const IS_LOCAL = process.argv.length > 2 && process.argv[2] === 'local';
 
-const PV_TOPIC = 'oi4/+/+/+/+/+/pub/data/+/+/+/+/oi4_pv';
+const PV_TOPIC = `${oi4Namespace}/+/+/+/+/+/${Methods.PUB}/${Resources.DATA}/+/+/+/+/oi4_pv`;
 
 const paths: ISettingsPaths = IS_LOCAL ? LocalTestPaths : defaultSettingsPaths;
 
-const processor = new ProcessValueMqttMessageProcessor();
 const getMamFileLocation = (isLocal: boolean) => isLocal ? `${basePath}/config/mam.json` : defaultMAMFile;
 const applicationResources = new OI4ApplicationResources(getMamFileLocation(IS_LOCAL));
-const appFactory = new OI4ApplicationFactory(applicationResources, paths);
-appFactory.mqttMessageProcessor = processor;
-appFactory.initialize(new ProcessValueOI4ApplicationBuilder());
-const oi4App = appFactory.createOI4Application();
-oi4App.addSubscription(PV_TOPIC).then();
+const oi4App = new OI4ApplicationFactory(applicationResources, paths).initialize(new ProcessValueOI4ApplicationBuilder()).createOI4Application();;
+oi4App.addListener(foreignMessage, listener);
+oi4App.addSubscription(PV_TOPIC, SubscriptionListConfig.NONE_0, 0).then();
 
 console.log('|=========== FINISHED initiating Service Demo ============|');

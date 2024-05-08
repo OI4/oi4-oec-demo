@@ -89,5 +89,10 @@ There is also yarn script doing the same thing. Just run `yarn run testLocal`
 
 ### Run the service as docker container
 The main intention of the service is to run as docker container, of course. As every OI4 OEC service this service need a couple of mounted files and directories.
-The easiest way to run the container is with the help of the [docker-compose file](docker_configs/docker-compose.yml).
-All you need to do is to adjust the host location of the volumes and run `docker compose up -d`.
+The easiest way to run te container is with the help of the prepared docker configuration.
+```shell
+yarn run unZip
+cd docker/oi4-oec-service-demo
+```
+is going to unzip the docker.zip file to the docker directory. The docker directory contains all needed files and directories to run the service as docker container.
+All you need to do is to add the API key, created above to the file at docker -> app -> app.json -> appid and run `docker compose up -d`.

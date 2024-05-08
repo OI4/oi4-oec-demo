@@ -1,3 +1,3 @@
 #!/bin/ash
 
-node app.js
+node ./dist/app.js
