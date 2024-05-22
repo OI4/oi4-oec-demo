@@ -56,7 +56,7 @@
     "docker:prepare": "docker buildx create --name oi4-builder --driver docker-container --use --platform linux/amd64,linux/arm64,linux/arm/v7,linux/arm/v6,linux/386",
     "docker:build": "yarn run prepareContainer && docker buildx build --push --platform linux/amd64,linux/arm64,linux/arm/v7,linux/arm/v6 -t ghcr.io/oi4/oi4-oec-service-demo:${npm_package_version} -t oi4/oi4-oec-service-demo:latest .",
     "docker:build:local": "docker build -t oi4/oi4-oec-service-demo:${npm_package_version} -t oi4/oi4-oec-service-demo:latest .",
-    "docker:build:snapshot": "docker build -t oi4/oi4-oec-service-demo:${npm_package_version} -t oi4/oi4-oec-service-demo:latest --build-arg BUILD_ENV=snapshot .",
+    "docker:build:snapshot": "yarn run prepareContainer && docker build -t oi4/oi4-oec-service-demo:${npm_package_version} -t oi4/oi4-oec-service-demo:latest --build-arg BUILD_ENV=snapshot .",
     "testLocal": "chmod ug+x ./scripts/test-local.sh && ./scripts/test-local.sh"
   }
 }
