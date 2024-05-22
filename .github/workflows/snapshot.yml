@@ -42,5 +42,6 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: Docker Build & Push
         run:  |
+          echo ${{ secrets.DOCKERHUB_TOKEN }} | docker login --username foo --password-stdin
           npm run docker:build:snapshot
           npm run docker:push:dockerhub
