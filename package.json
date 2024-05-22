@@ -37,6 +37,8 @@
     "clean": "lerna clean",
     "clean:build": "lerna run clean",
     "dependency:circular": "node_modules/madge/bin/cli.js --warning --circular ./",
+    "docker:prepare": "lerna run docker:prepare",
+    "docker:build:snapshot": "lerna run docker:build:snapshot",
     "test": "jest"
   }
 }
