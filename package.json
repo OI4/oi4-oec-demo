@@ -39,6 +39,7 @@
     "dependency:circular": "node_modules/madge/bin/cli.js --warning --circular ./",
     "docker:prepare": "docker buildx create --name oi4-builder --driver docker-container --use --platform linux/amd64,linux/arm64,linux/arm/v7,linux/arm/v6,linux/386",
     "docker:build:snapshot": "lerna run docker:build:snapshot",
+    "docker:push:dockerhub": "lerna run docker:push:dockerhub",
     "test": "jest"
   }
 }
