@@ -21,7 +21,7 @@
     "url": "git@github.com:OI4/oi4-oec-demo.git"
   },
   "dependencies": {
-    "@oi4/oi4-oec-service-node": "^1.0.0-preview.4",
+    "@oi4/oi4-oec-service-node": "^1.1.0-preview.12",
     "@types/ws": "^8.5.2",
     "axios": "^0.27.2",
     "ajv": "^6.12.6",

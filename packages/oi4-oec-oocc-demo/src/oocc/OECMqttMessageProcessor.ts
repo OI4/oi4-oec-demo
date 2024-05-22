@@ -1,5 +1,5 @@
-import {MqttMessageProcessor, TopicInfo, TopicMethods} from '@oi4/oi4-oec-service-node';
-import { IOPCUANetworkMessage } from '@oi4/oi4-oec-service-opcua-model';
+import {MqttMessageProcessor, TopicInfo} from '@oi4/oi4-oec-service-node';
+import { IOPCUANetworkMessage, Methods} from '@oi4/oi4-oec-service-model';
 import {map1To012Version} from '../mappers/MapperFor012Version';
 import axios from 'axios';
 import {AASCredentialsHelper} from '../helpers/AASCredentialsHelper';
@@ -22,9 +22,9 @@ export class OECMqttMessageProcessor extends MqttMessageProcessor {
     async handleForeignMessage(topicInfo: TopicInfo, parsedMessage: IOPCUANetworkMessage): Promise<void> {
 
         const convertedMessage = map1To012Version(parsedMessage);
-        console.log(`Message received from ${topicInfo.topic} with values: ${JSON.stringify(parsedMessage?.Messages[0]?.Payload)}`);
+        console.log(`Message received from ${topicInfo.toString()} with values: ${JSON.stringify(parsedMessage?.Messages[0]?.Payload)}`);
         const auths = this.getBaseAuth();
-        await axios.post(`${this.readAppConfig().resourceUrl}/${TopicMethods.PUB}/${topicInfo.resource}`, convertedMessage, {
+        await axios.post(`${this.readAppConfig().resourceUrl}/${Methods.PUB}/${topicInfo.resource}`, convertedMessage, {
                 auth: auths,
                 params: {appId: this.oi4Id}
             }).then((res) => console.log('Message successfully posted', res.data))

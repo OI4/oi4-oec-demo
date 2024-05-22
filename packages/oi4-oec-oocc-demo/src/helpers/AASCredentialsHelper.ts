@@ -1,4 +1,4 @@
-import {BaseCredentialsHelper} from '@oi4/oi4-oec-service-node/dist/Utilities/Helpers/BaseCredentialsHelper';
+import {BaseCredentialsHelper} from '@oi4/oi4-oec-service-node';
 import {IMqttSettingsPaths} from '@oi4/oi4-oec-service-node';
 
 export class AASCredentialsHelper extends BaseCredentialsHelper {
