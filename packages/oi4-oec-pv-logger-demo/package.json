@@ -54,6 +54,7 @@
     "copy:dependencies": "source ./scripts/setenv.sh && bash ./scripts/copy_dependencies.sh &&",
     "prepareContainer": "./scripts/prepare_container.sh",
     "docker:prepare": "docker buildx create --name oi4-builder --driver docker-container --use --platform linux/amd64,linux/arm64,linux/arm/v7,linux/arm/v6,linux/386",
+    "docker:build": "yarn run prepareContainer && docker buildx build --platform linux/amd64,linux/arm64,linux/arm/v7,linux/arm/v6 -t oi4a/oi4-oec-pv-logger-demo:${npm_package_version} -t oi4a/oi4-oec-pv-logger-demo:latest .",
     "docker:build:local": "docker build -t oi4a/oi4-oec-pv-logger-demo:${npm_package_version} -t oi4a/oi4-oec-pv-logger-demo:latest .",
     "docker:build:snapshot": "yarn run prepareContainer && docker build -t oi4a/oi4-oec-pv-logger-demo:${npm_package_version} -t oi4a/oi4-oec-pv-logger-demo:latest --build-arg BUILD_ENV=snapshot .",
     "docker:push:dockerhub": "docker push oi4a/oi4-oec-pv-logger-demo:${npm_package_version} && docker push oi4a/oi4-oec-pv-logger-demo:latest",
