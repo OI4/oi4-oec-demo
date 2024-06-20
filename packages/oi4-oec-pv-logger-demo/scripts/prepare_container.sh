@@ -7,6 +7,15 @@ mkdir -p ./build/container/dist
 
 cp ./package.json ./build/container/package.json
 cp ./scripts/entrypoint.sh ./build/container/scripts/entrypoint.sh
+
+if [[ -f ./dist/app.js ]]
+then
+  echo "app.js found in build dist"
+else
+  echo "app.js not found in build dist"
+  exit 1
+fi
+
 cp -r ./dist/ ./build/container/dist
 
 cd ./build/container || exit
