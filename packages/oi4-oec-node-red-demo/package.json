@@ -15,6 +15,7 @@
     "test": "echo \"Error: run tests from root\""
   },
   "dependencies": {
-    "node-red": "^2.2.2"
+    "axios": "1.7.2",
+    "node-red": "^4.0.0"
   }
 }
