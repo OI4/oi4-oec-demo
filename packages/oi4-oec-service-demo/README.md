@@ -4,10 +4,19 @@ The oi4-oec-service-demo service is a demo connector to explain and understand t
 It simulates ambient sensors by querying the API of [OpenWeather](https://openweathermap.org).
 
 You can run the service locally or as docker container.
+Prebuild docker images are available in [docker hub](https://hub.docker.com/u/oi4community).
+
+## TL;DR just getting started
+For a quick and easy start with the demo projects there is a Docker Compose file available. 
+The necessary steps for configuring and executing can be found in the [OI4 OEC Community documentation](https://oi4.github.io/oi4-oec-documentation/docs/development-edge-setup-guide#install-open-edge-computing-demo-services).
+
+Alternatively you can process the following steps of this README:
+- [Setup OpenWeather account](#setup-openweather-account)
+- [Application specific storages](#application-specific-storages)
+- [Run the service as docker container](#run-the-service-as-docker-container)
 
 ## Installation and build
 
-Make sure you provided a PAT as described in the root [README.md](../../README.md) file.
 ```
 yarn install
 yarn build
@@ -23,10 +32,7 @@ The copy command needs the information where to find the oi4-service code on you
 
 ## Prerequisites
 
-### GitHub package repository access
-Apply the configuration as described in the root [README.md](../../README.md) file.
-
-### Setup OpenWeather account 
+### Setup OpenWeather account
 The OpenWeather API requires an account to retrieve the weather data. OpenWeather provides a free account - [SIGN UP](https://home.openweathermap.org/users/sign_up). 
 Once you created an account switch to your API keys and note it down. The service uses the API key provided in the app.json as appid.
 
@@ -39,7 +45,7 @@ In case the private key is protected with a passphrase, you will need to provide
 
 ## Configuration
 The general configuration of the service is described in the [wiki](https://github.com/OI4/oi4-oec-service/wiki/Configuration-of-OEC-services) of the oi4-oec-service.
-The demo service will handle all common configuration as described there. In addition there are the following configuration locations used.
+The demo service will handle all common configuration as described there. In addition, there are the following configuration locations used.
 
 ### Application specific storages
 The service will use the following application specific storages:
@@ -51,20 +57,10 @@ The MAM setting used by the service is defined in the `config/mam.json` file.
 
 ## Building a docker image
 
-### Modules in OI4 GitHub package repo
-The oi4-service Node.js modules are published to a private repository on GitHub. To access the modules the repository must be registered and a PAT (personal access token) is needed for the authentication.
-This is typically done by putting a .npmrc file into to current working directory.
-As credentials shall not be shared in a GitHub repository the file uses an environment variable `PACKAGES_AUTH_TOKEN` to retrieve the PAT.
-If the node module dependencies are installed in the dockerfile during the build process (e.g. with yarn install), the build process must also use the .npmrc file and authenticate against the repository.
-
-In the example Docker image build process this is done by copying the .npmrc file and the PAT is provided as build argument.
-
 ### Using unpublished versions of oi4-service in docker builds
-Current, up-to-date versions of the oi4-service are published as node modules to the GitHub package repository.
-It is always recommended to use these packages for any service. In cases where unreleased and unpublished versions of the oi4-service should be used (e.g. when working on the oi4-service itself) a `yarn install` or similar will not work.
-The demo image uses a build flag BUILD_ENV to switch to a snapshot build, which will copy the content of the `node_module/oi4` folder to the image. This can be used to link the latest versions of the oi4-service to the node_modules.
-
-BUT symlinks will not work with docker build. Therefore, a `yarn link` will not work. Best known solution so far is, to physically copy the folder to the node_modules folder.
+Current, up-to-date versions of the oi4-service are published as node modules to the [npm package repository](https://www.npmjs.com/~oi4.community).
+It is always recommended to use these packages for any service. In cases where unreleased and unpublished versions of the oi4-oec-service should be used (e.g. when working on the oi4-oec-service itself)  you have to asure that the local snapshot of the oi4-oec-service is used in the docker build process.
+A `yarn link` or similar that just create symlinks will not work. The best known solution so far is to physically copy the folder to the `node_modules` folder.
 
 ## General configuration
 The configuration of the connector follows the definitions of the Open Edge Computing Guideline. 
@@ -73,7 +69,6 @@ It depends on the usage of the connector how the configuration is used and provi
 If the connector is run locally you can either provide the base path to the configuration folders with the environment variable `BASE_PATH` or you can overwrite the configuration that is stored in the docker_configs directory directly (please do not check in any of the files in case you changed them).
 
 By default, the [app.ts](src/app.ts) will use a passphrase file and ignore the client certificate if provided. Just uncomment the lines in the app.ts file to use the client certificate.
-
 
 ## Run the service
 To run the service make sure you processed the steps above to build and configure the service.
