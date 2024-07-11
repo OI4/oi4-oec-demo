@@ -1,11 +1,6 @@
 import {
-<<<<<<< HEAD
     defaultMAMFile,
     defaultSettingsPaths,
-=======
-    DEFAULT_MAM_FILE,
-    DefaultSettingsPaths,
->>>>>>> origin/ooc-demo
     ISettingsPaths,
     OI4ApplicationFactory,
     OI4ApplicationResources
