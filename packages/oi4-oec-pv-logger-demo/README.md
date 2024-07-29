@@ -23,9 +23,6 @@ The copy command needs the information where to find the oi4-service code on you
 
 ## Prerequisites
 
-### GitHub package repository access
-Apply the configuration as described in the root [README.md](../../README.md) file.
-
 ### MQTT settings
 The service uses the MQTT connection of the OI4 OEC service. It requires a secure MQTT over TLS connection and either a client certificate or a username and password based authentication.
 You will need the Certificate Authority (CA) certificate that singed the certificate of the MQTT broker. For the authentication you need the username and password or the client certificate and its according private key.
