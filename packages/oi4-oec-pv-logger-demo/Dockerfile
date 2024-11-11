@@ -12,7 +12,5 @@ WORKDIR /usr/oi4-oec-pv-logger-demo
 # COPY logs directory
 RUN mkdir -p logs
 
-LABEL org.opencontainers.image.source=https://github.com/oi4/oi4-oec-demo
-
 RUN chmod +x "scripts/entrypoint.sh"
 ENTRYPOINT ["scripts/entrypoint.sh"]

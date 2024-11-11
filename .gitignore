@@ -118,3 +118,4 @@ out
 /packages/oi4-oec-service-demo/docker/
 /packages/oi4-oec-service-demo/build/
 /packages/oi4-oec-pv-logger-demo/build/
+/packages/oi4-oec-service-demo-golang/testdata/docker_configs/
