@@ -22,7 +22,7 @@ then
 fi
 
 cd ./build/container || exit
-yarn install --production
+yarn install
 if [[ ! -d ./node_modules ]]
 then
   echo "Install of modules failed"
