@@ -23,4 +23,9 @@ fi
 
 cd ./build/container || exit
 yarn install --production
+if [[ ! -d ./node_modules ]]
+then
+  echo "Install of modules failed"
+  exit 1
+fi
 cd ../..
