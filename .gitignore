@@ -119,3 +119,5 @@ out
 /packages/oi4-oec-service-demo/build/
 /packages/oi4-oec-pv-logger-demo/build/
 /packages/oi4-oec-service-demo-go/testdata/docker_configs/
+/packages/oi4-oec-service-demo-go/coverage.out
+/packages/oi4-oec-service-demo-go/test-report.json
