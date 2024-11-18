@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"flag"
-	"fmt"
 	"github.com/OI4/oi4-oec-demo/internal/application"
 	"github.com/OI4/oi4-oec-demo/internal/weather"
 	"github.com/OI4/oi4-oec-service-go/service/api"
@@ -29,7 +28,7 @@ func main() {
 		panic(err)
 	}
 
-	appId, err := getAppId(storage)
+	appID, err := getAppID(storage)
 	if err != nil {
 		wd, _ := os.Getwd()
 		logger.Info("Working directory:", wd)
@@ -37,7 +36,7 @@ func main() {
 		panic(err)
 	}
 
-	weatherService := weather.NewService(*appId, weather.Metric)
+	weatherService := weather.NewService(*appID, weather.Metric, logger)
 
 	assets, err := getAssets(storage.ApplicationSpecificStorages, logger)
 	if err != nil {
@@ -69,11 +68,15 @@ func getStorage(logger *zap.SugaredLogger) (*container.Storage, *api.MasterAsset
 	isContainer := runtime == "container"
 
 	var config container.StorageConfiguration
+
 	var mam *api.MasterAssetModel
+
 	var err error
+
 	if isContainer {
 		config = *container.DefaultStorageConfiguration()
 		mam, err = getMasterAssetModel(container.DefaultOi4Folder)
+
 		if err != nil {
 			return nil, nil, err
 		}
@@ -82,19 +85,20 @@ func getStorage(logger *zap.SugaredLogger) (*container.Storage, *api.MasterAsset
 		if err != nil {
 			return nil, nil, err
 		}
+
 		config = container.StorageConfiguration{
 			ContainerName:                        mam.SerialNumber,
 			MessageBusStoragePath:                filepath.Join(baseDir, container.DefaultMessageBusStorageSubFolder),
 			Oi4CertificateStoragePath:            filepath.Join(baseDir, container.DefaultOi4CertificateStorageSubFolder),
 			SecretStoragePath:                    filepath.Join(baseDir, container.DefaultSecretsFolder),
-			ApplicationSpecificConfigurationPath: filepath.Join(baseDir, container.DefaultApplicationSpecificConfigurationFolder),
+			ApplicationSpecificConfigurationPath: filepath.Join(baseDir, container.DefaultApplicationSpecificConfigurationFolder), //nolint:lll
 			ApplicationSpecificDataPath:          filepath.Join(baseDir, container.DefaultApplicationSpecificDataFolder),
 		}
 	}
 
 	storage, err := container.NewContainerStorage(config, logger)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, err //nolint:wrapcheck
 	}
 
 	return storage, mam, nil
@@ -103,14 +107,17 @@ func getStorage(logger *zap.SugaredLogger) (*container.Storage, *api.MasterAsset
 func getMasterAssetModel(oi4Dir string) (*api.MasterAssetModel, error) {
 	mamFile := filepath.Join(oi4Dir, "config", "mam.json")
 	fileBytes, err := os.ReadFile(mamFile)
+
 	if err != nil {
 		return nil, &api.Error{
 			Message: "Failed to read master asset model file from: " + mamFile,
 			Err:     err,
 		}
 	}
+
 	var mam api.MasterAssetModel
 	err = json.Unmarshal(fileBytes, &mam)
+
 	if err != nil {
 		return nil, &api.Error{
 			Message: "Failed to unmarshal master asset model file from: " + mamFile,
@@ -124,12 +131,12 @@ func getMasterAssetModel(oi4Dir string) (*api.MasterAssetModel, error) {
 func getEnvironment() (string, string) {
 	baseDir, hasBaseDirEnv := os.LookupEnv("BASE_DIR")
 	if !hasBaseDirEnv {
-		baseDir = *flag.String("base", "", "base dir of the configuration")
+		flag.StringVar(&baseDir, "base", "", "base dir of the configuration")
 	}
 
 	runtime, hasRuntimeEnv := os.LookupEnv("RUNTIME")
 	if !hasRuntimeEnv {
-		runtime = *flag.String("runtime", "container", "runtime environment (program, container)")
+		flag.StringVar(&runtime, "runtime", "container", "runtime environment (program, container)")
 	}
 
 	if !hasBaseDirEnv || !hasRuntimeEnv {
@@ -139,20 +146,26 @@ func getEnvironment() (string, string) {
 	return baseDir, runtime
 }
 
-func getAppId(configuration *container.Storage) (*string, error) {
+func getAppID(configuration *container.Storage) (*string, error) {
 	file := filepath.Join(*configuration.SecretStorage.FolderPath, "weather_app_id")
 	fileBytes, err := os.ReadFile(file)
+
 	if err != nil {
 		return nil, &api.Error{
 			Message: "Failed to read weather app id file from: " + file,
 			Err:     err,
 		}
 	}
+
 	id := string(fileBytes)
+
 	return &id, nil
 }
 
-func getAssets(appStorage *container.ApplicationSpecificStorages, logger *zap.SugaredLogger) ([]application.Asset, error) {
+func getAssets(
+	appStorage *container.ApplicationSpecificStorages,
+	logger *zap.SugaredLogger,
+) ([]application.Asset, error) {
 	folder := filepath.Join(appStorage.ConfigurationPath, "assets")
 
 	files, err := os.ReadDir(folder)
@@ -164,22 +177,28 @@ func getAssets(appStorage *container.ApplicationSpecificStorages, logger *zap.Su
 	}
 
 	var assets = make([]application.Asset, 0)
+
 	for _, file := range files {
 		if file.IsDir() || filepath.Ext(file.Name()) != ".json" {
 			continue
 		}
+
 		jsonBytes, fErr := readFile(filepath.Join(folder, file.Name()), logger)
+
 		if fErr != nil {
-			fmt.Println("Failed to asset read file: "+file.Name(), fErr)
+			logger.Warn("Failed to asset read file: "+file.Name(), fErr)
 		}
 
 		var asset application.Asset
 		err = json.Unmarshal(jsonBytes, &asset)
+
 		if err != nil {
 			logger.Error("Failed to unmarshal asset: "+file.Name(), err)
 		}
+
 		assets = append(assets, asset)
 	}
+
 	return assets, nil
 }
 
@@ -193,12 +212,14 @@ func readFile(filePath string, logger *zap.SugaredLogger) ([]byte, error) {
 			logger.Warnf("Error closing file: "+filePath, err)
 		}
 	}(file)
+
 	if err != nil {
-		return nil, err
+		return nil, err //nolint:wrapcheck
 	}
 
 	var buffer bytes.Buffer
 	_, err = io.Copy(&buffer, file)
+
 	return buffer.Bytes(), err
 }
 

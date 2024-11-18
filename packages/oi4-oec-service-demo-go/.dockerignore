@@ -1,0 +1,4 @@
+/testdata/
+/Dockerfile
+/.dockerignore
+docker_configs.zip

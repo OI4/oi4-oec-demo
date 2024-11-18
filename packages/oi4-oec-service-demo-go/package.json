@@ -1,0 +1,33 @@
+{
+  "name": "@oi4/oi4-oec-service-demo-go",
+  "version": "1.1.0-preview.2",
+  "description": "An OI4-compliant demo application in Go showing the publishing of data",
+  "author": "Open Industry 4.0 Alliance - Community",
+  "license": "MIT",
+  "private": false,
+  "keywords": [
+    "oi4",
+    "service",
+    "demo",
+    "go"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:OI4/oi4-oec-demo.git"
+  },
+  "scripts": {
+    "unZip": "yarn run clean && unzip -d ./testdata/docker_configs docker_configs.zip",
+    "build": "yarn run clean && echo 'building service demo project' && tsc -b tsconfig.json",
+    "clean": "rm -rf ./build",
+    "lint": "golangci-lint run ./... --enable-all -D tagliatelle -D depguard -D goimports -D gofumpt -D gci -D paralleltest -D exhaustruct -D godot -D testpackage -D godox",
+    "test": "go test ",
+    "copy:dependencies": "source ./scripts/setenv.sh && bash ./scripts/copy_dependencies.sh &&",
+    "prepareContainer": "./scripts/prepare_container.sh",
+    "docker:prepare": "docker buildx create --name oi4-builder --driver docker-container --use --platform linux/amd64,linux/arm64,linux/arm/v7,linux/arm/v6,linux/386",
+    "docker:build": "yarn run prepareContainer && docker buildx build --push --platform linux/amd64,linux/arm64,linux/arm/v7,linux/arm/v6 -t oi4a/oi4-oec-service-demo:${npm_package_version} -t oi4a/oi4-oec-service-demo:latest .",
+    "docker:build:local": "docker build -t oi4a/oi4-oec-service-demo:${npm_package_version} -t oi4a/oi4-oec-service-demo:latest .",
+    "docker:build:snapshot": "yarn run prepareContainer && docker build -t oi4a/oi4-oec-service-demo:${npm_package_version} -t oi4a/oi4-oec-service-demo:latest --build-arg BUILD_ENV=snapshot .",
+    "docker:push:dockerhub": "docker push oi4a/oi4-oec-service-demo:${npm_package_version} && docker push oi4a/oi4-oec-service-demo:latest",
+    "testLocal": "chmod ug+x ./scripts/test-local.sh && ./scripts/test-local.sh"
+  }
+}

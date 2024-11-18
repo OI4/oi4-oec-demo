@@ -1,0 +1,32 @@
+version: '3.9'
+
+services:
+  oi4-oec-registry:
+    image: oi4a/oi4-oec-registry:latest
+    container_name: oi4-oec-registry
+    restart: on-failure
+    hostname: F12AB34
+    volumes:
+      - "${BASE_PATH}/oi4-oec-registry/mqtt:/etc/oi4/mqtt"
+      - "${BASE_PATH}/oi4-oec-registry/certs:/etc/oi4/certs"
+      - "${BASE_PATH}/oi4-oec-registry/secrets:/run/secrets"
+      - "${BASE_PATH}/oi4-oec-registry/config:/etc/oi4/config"
+      - "${BASE_PATH}/oi4-oec-registry/app:/etc/oi4/app"
+    environment:
+      - OI4_EDGE_EVENT_LEVEL=warning
+      - OI4_EDGE_LOG_LEVEL=informational
+      - SERVICE_ENDPOINT_ADDRESS=__host_name__
+      - SERVICE_ENDPOINT_PORT=5799
+      - TZ=${TZ}
+    ports:
+      - "5798:5798"
+      - "5799:5799"
+    networks:
+      oi4:
+        aliases:
+          - oi4-oec-registry
+
+networks:
+  oi4:
+    driver: bridge
+    name: oi4

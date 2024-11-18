@@ -3,7 +3,7 @@ module github.com/OI4/oi4-oec-demo
 go 1.23.3
 
 require (
-	github.com/OI4/oi4-oec-service-go v0.3.1
+	github.com/OI4/oi4-oec-service-go v0.3.2
 	github.com/stretchr/testify v1.9.0
 	go.uber.org/zap v1.27.0
 )

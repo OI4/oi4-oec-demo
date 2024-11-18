@@ -1,7 +1,6 @@
 package application
 
 import (
-	"fmt"
 	"github.com/OI4/oi4-oec-demo/internal/weather"
 	"github.com/OI4/oi4-oec-service-go/service/api"
 	"github.com/OI4/oi4-oec-service-go/service/application"
@@ -30,6 +29,7 @@ func NewWeatherApplication(
 ) *WeatherApplication {
 	applicationSource := source.NewApplicationSourceImpl(mam)
 	oi4Application, err := application.CreateNewApplication(api.ServiceTypeOTConnector, applicationSource, logger)
+
 	if err != nil {
 		logger.Fatal("Failed to create application:", err)
 		panic(err)
@@ -57,18 +57,32 @@ func (app *WeatherApplication) AddAssets(assetList []Asset) {
 func (app *WeatherApplication) AddAsset(asset Asset) {
 	key := asset.ToOi4Identifier().ToString()
 
-	assetSource := source.NewAssetSourceImpl(asset.MasterAssetModel)
+	option := source.WithDataFn(
+		func(_ api.BaseSource, filter api.Filter) []api.Data {
+			return app.getWeatherData(asset, filter)
+		},
+	)
+
+	assetSource := source.NewAssetSourceImpl(asset.MasterAssetModel, option)
 	oi4Asset := application.CreateNewAsset(assetSource, app.Oi4ApplicationImpl)
-	dataAssetPublication := publication.NewResourcePublicationWithFilter(app.Oi4ApplicationImpl, assetSource, api.ResourceData, api.NewStringFilter("Oi4Data"))
+	dataAssetPublication := newDataPublication(app.Oi4ApplicationImpl, assetSource)
 	err := oi4Asset.RegisterPublication(dataAssetPublication)
+
 	if err != nil {
 		app.logger.Error("Failed to register publication:", err)
 	}
-	metaDataAssetPublication := publication.NewResourcePublication(app.Oi4ApplicationImpl, assetSource, api.ResourceMetadata)
+
+	metaDataAssetPublication := publication.NewResourcePublication(
+		app.Oi4ApplicationImpl,
+		assetSource,
+		api.ResourceMetadata)
+
 	err = oi4Asset.RegisterPublication(metaDataAssetPublication)
+
 	if err != nil {
 		app.logger.Error("Failed to register publication:", err)
 	}
+
 	app.RegisterAsset(oi4Asset)
 
 	assetEntry := AssetsEntry{
@@ -80,41 +94,42 @@ func (app *WeatherApplication) AddAsset(asset Asset) {
 	app.assets[key] = assetEntry
 }
 
-func (app *WeatherApplication) Start(storage container.Storage) error {
-	err := app.Oi4ApplicationImpl.Start(storage)
-	if err != nil {
-		return err
+func (app *WeatherApplication) getWeatherData(asset Asset, filter api.Filter) []api.Data {
+	if filter != nil && !api.FilterEquals(filter, api.NewStringFilter("Oi4Data")) {
+		return nil
 	}
-	assetTicker := time.NewTicker(1 * time.Minute)
-	go func() {
-		for {
-			<-assetTicker.C
-			for key, asset := range app.assets {
-				fmt.Println(key)
-				fmt.Println(asset)
-				lat := asset.asset.Location.Latitude
-				lon := asset.asset.Location.Longitude
-				response, rErr := app.weatherService.GetWeather(weather.Coordinates{Lon: lon, Lat: lat}, "en")
-				if rErr != nil {
-					app.logger.Warn("Failed to get weather data:", rErr)
-					continue
-				}
-				data := api.NewOi4Data(response.Main.Temp)
 
-				addValue := func(key string, value any) {
-					dErr := data.AddSecondaryData(key, &value)
+	lat := asset.Location.Latitude
+	lon := asset.Location.Longitude
+	response, rErr := app.weatherService.GetWeather(weather.Coordinates{Lon: lon, Lat: lat}, "en")
 
-					if dErr != nil {
-						app.logger.Warn("Failed to add secondary data:", dErr)
-					}
-				}
+	if rErr != nil {
+		app.logger.Warn("Failed to get weather data:", rErr)
 
-				addValue("Sv1", response.Main.Pressure)
-				addValue("Sv2", response.Main.Humidity)
+		return nil
+	}
 
-				asset.assetSource.UpdateData(data, "Oi4Data")
-			}
+	data := api.NewOi4Data(response.Main.Temp)
+
+	addValue := func(key string, value any) {
+		dErr := data.AddSecondaryData(key, &value)
+
+		if dErr != nil {
+			app.logger.Warn("Failed to add secondary data:", dErr)
 		}
-	}()
-	return nil
+	}
+
+	addValue("Sv1", response.Main.Pressure)
+	addValue("Sv2", response.Main.Humidity)
+
+	return []api.Data{data}
+}
+
+func newDataPublication(application api.Oi4Application, oi4Source api.BaseSource) *publication.IntervalPublicationImpl {
+	return publication.NewIntervalBuilder(application, 1*time.Minute). //
+										Oi4Source(oi4Source).                                      //
+										Resource(api.ResourceData).                                //
+										Filter(api.NewStringFilter("Oi4Data")).                    //
+										PublicationMode(api.PublicationMode_APPLICATION_SOURCE_5). //
+										Build()
 }

@@ -1,7 +1,7 @@
 github.com/OI4/dnp-encoder-go v0.9.0 h1:dz73+gz1S+P5ZjWhBMkSIqOhTXrKFEq412zuLgPewZQ=
 github.com/OI4/dnp-encoder-go v0.9.0/go.mod h1:IPtxVbjChVAL9uNspbUJPFnjgRPMXhwdHK81BJfCS/g=
-github.com/OI4/oi4-oec-service-go v0.3.1 h1:XBMFDrPv1l5Yk02ellOObbj8f3zHnAusPNq9ac2QITg=
-github.com/OI4/oi4-oec-service-go v0.3.1/go.mod h1:JPGDDis8Z/WZYY1pVbPd2+zMKl/XAQClnLLDa5B0ewI=
+github.com/OI4/oi4-oec-service-go v0.3.2 h1:ZKZTT4xbUXFg/8S3dYtrvGA6qVi86B+UcVhG0eSHeTE=
+github.com/OI4/oi4-oec-service-go v0.3.2/go.mod h1:JPGDDis8Z/WZYY1pVbPd2+zMKl/XAQClnLLDa5B0ewI=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/eclipse/paho.mqtt.golang v1.5.0 h1:EH+bUVJNgttidWFkLLVKaQPGmkTUfQQqjOsyvMGvD6o=

@@ -2,6 +2,8 @@ package weather
 
 import (
 	"encoding/json"
+	"go.uber.org/zap"
+	"log"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -30,19 +32,32 @@ func TestGetWeather(t *testing.T) {
 	}
 
 	// Create a test server
-	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	testServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		err := json.NewEncoder(w).Encode(mockResponse)
+
 		if err != nil {
 			return
 		}
 	}))
-	defer ts.Close()
+	defer testServer.Close()
 
-	ws := NewServiceWithUrl(ts.URL, "test_app_id", Metric)
+	ws := NewServiceWithURL(testServer.URL, "test_app_id", Metric, getLogger())
 	coordinates := Coordinates{Lon: 10.0, Lat: 50.0}
 	weather, err := ws.GetWeather(coordinates, "en")
 
 	require.NoError(t, err)
 	assert.Equal(t, mockResponse, *weather)
+}
+
+func getLogger() *zap.SugaredLogger {
+	logger, _ := zap.NewProduction()
+	defer func(logger *zap.Logger) {
+		err := logger.Sync()
+		if err != nil {
+			log.Println("Error syncing logger:", err)
+		}
+	}(logger) // flushes buffer, if any
+
+	return logger.Sugar()
 }
