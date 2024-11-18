@@ -2,6 +2,7 @@ FROM --platform=$BUILDPLATFORM golang:1.23.3-alpine AS builder
 
 ARG TARGETARCH
 
+
 WORKDIR /app
 COPY . ./
 RUN go mod download
@@ -12,6 +13,8 @@ FROM alpine:latest
 WORKDIR /app
 
 COPY --from=builder /app/output/main .
+RUN mkdir -p /etc/oi4/app
+RUN mkdir -p /opt/oi4/app
 
 # Run
 ENTRYPOINT ["/app/main"]
