@@ -24,6 +24,6 @@
     "docker:build": "yarn run prepareContainer && docker buildx build --push --platform linux/amd64,linux/arm64,linux/arm/v7,linux/arm/v6 -t oi4a/oi4-oec-service-demo-go:${npm_package_version} -t oi4a/oi4-oec-service-demo-go:latest .",
     "docker:build:local": "docker build -t oi4a/oi4-oec-service-demo-go:${npm_package_version} -t oi4a/oi4-oec-service-demo-go:latest .",
     "docker:build:snapshot": "yarn run prepareContainer && docker build -t oi4a/oi4-oec-service-demo-go:${npm_package_version} -t oi4a/oi4-oec-service-demo-go:latest --build-arg BUILD_ENV=snapshot .",
-    "docker:push:dockerhub": "docker push oi4a/oi4-oec-service-demo-go:${npm_package_version} && docker push oi4a/oi4-oec-service-demo-go:latest",
+    "docker:push:dockerhub": "docker push oi4a/oi4-oec-service-demo-go:${npm_package_version} && docker push oi4a/oi4-oec-service-demo-go:latest"
   }
 }
