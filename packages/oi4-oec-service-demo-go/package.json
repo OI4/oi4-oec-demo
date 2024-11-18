@@ -21,9 +21,9 @@
     "lint": "golangci-lint run ./... --enable-all -D tagliatelle -D depguard -D goimports -D gofumpt -D gci -D paralleltest -D exhaustruct -D godot -D testpackage -D godox",
     "test": "go test -coverprofile=coverage.out -json ./... | tee test-report.json",
     "docker:prepare": "docker buildx create --name oi4-builder --driver docker-container --use --platform linux/amd64,linux/arm64,linux/arm/v7,linux/arm/v6,linux/386",
-    "docker:build": "yarn run prepareContainer && docker buildx build --push --platform linux/amd64,linux/arm64,linux/arm/v7,linux/arm/v6 -t oi4a/oi4-oec-service-demo-go:${npm_package_version} -t oi4a/oi4-oec-service-demo-go:latest .",
+    "docker:build": "docker buildx build --push --platform linux/amd64,linux/arm64,linux/arm/v7,linux/arm/v6 -t oi4a/oi4-oec-service-demo-go:${npm_package_version} -t oi4a/oi4-oec-service-demo-go:latest .",
     "docker:build:local": "docker build -t oi4a/oi4-oec-service-demo-go:${npm_package_version} -t oi4a/oi4-oec-service-demo-go:latest .",
-    "docker:build:snapshot": "yarn run prepareContainer && docker build -t oi4a/oi4-oec-service-demo-go:${npm_package_version} -t oi4a/oi4-oec-service-demo-go:latest --build-arg BUILD_ENV=snapshot .",
+    "docker:build:snapshot": "docker build -t oi4a/oi4-oec-service-demo-go:${npm_package_version} -t oi4a/oi4-oec-service-demo-go:latest --build-arg BUILD_ENV=snapshot .",
     "docker:push:dockerhub": "docker push oi4a/oi4-oec-service-demo-go:${npm_package_version} && docker push oi4a/oi4-oec-service-demo-go:latest"
   }
 }
