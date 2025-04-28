@@ -37,7 +37,7 @@
     "lodash": "^4.17.21",
     "help-me": "^3.0.0",
     "uuid": "^9.0.1",
-    "npm-nan":"2.22.2"
+    "nan":"2.22.2"
   },
   "devDependencies": {
     "@types/cors": "^2.8.10",
