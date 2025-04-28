@@ -1,6 +1,6 @@
 {
   "name": "@oi4/oi4-oec-demo",
-  "version": "1.1.0-preview.2",
+  "version": "1.1.0-preview.3",
   "description": "Monorepo to handle all Open Industry 4.0 Alliance Open Edge Computing demos ",
   "author": "Open Industry 4.0 Alliance - Community",
   "license": "MIT",
@@ -12,7 +12,8 @@
   ],
   "dependencies": {
     "ajv": "^8.12.0",
-    "ajv-formats": "^2.1.1"
+    "ajv-formats": "^2.1.1",
+    "mqtt":"^4.3.8"
   },
   "devDependencies": {
     "@types/jest": "^27.4.1",
