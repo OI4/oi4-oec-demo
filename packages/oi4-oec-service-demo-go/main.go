@@ -63,7 +63,7 @@ func main() {
 func getStorage(logger *zap.SugaredLogger) (*container.Storage, *api.MasterAssetModel, error) {
 	baseDir, runtime := getEnvironment()
 
-	logger.Info("Using app as: %s with base dir: %s\n", runtime, baseDir)
+	logger.Infof("Using app as: %s with base dir: %s", runtime, baseDir)
 
 	isContainer := runtime == "container"
 

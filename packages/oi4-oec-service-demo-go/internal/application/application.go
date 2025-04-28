@@ -58,7 +58,7 @@ func (app *WeatherApplication) AddAsset(asset Asset) {
 	key := asset.ToOi4Identifier().ToString()
 
 	option := source.WithDataFn(
-		func(_ api.BaseSource, filter api.Filter) []api.Data {
+		func(_ api.BaseSource, filter *api.Filter) []api.Data {
 			return app.getWeatherData(asset, filter)
 		},
 	)
@@ -94,8 +94,8 @@ func (app *WeatherApplication) AddAsset(asset Asset) {
 	app.assets[key] = assetEntry
 }
 
-func (app *WeatherApplication) getWeatherData(asset Asset, filter api.Filter) []api.Data {
-	if filter != nil && !api.FilterEquals(filter, api.NewStringFilter("Oi4Data")) {
+func (app *WeatherApplication) getWeatherData(asset Asset, filter *api.Filter) []api.Data {
+	if filter != nil && !api.FilterEquals(filter, api.NewFilter("Oi4Data")) {
 		return nil
 	}
 
@@ -129,7 +129,7 @@ func newDataPublication(application api.Oi4Application, oi4Source api.BaseSource
 	return publication.NewIntervalBuilder(application, 1*time.Minute). //
 										Oi4Source(oi4Source).                                      //
 										Resource(api.ResourceData).                                //
-										Filter(api.NewStringFilter("Oi4Data")).                    //
+										Filter(api.NewFilter("Oi4Data")).                          //
 										PublicationMode(api.PublicationMode_APPLICATION_SOURCE_5). //
 										Build()
 }
