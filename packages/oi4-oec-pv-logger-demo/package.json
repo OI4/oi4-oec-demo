@@ -36,7 +36,8 @@
     "winston-syslog": "^2.5.0",
     "lodash": "^4.17.21",
     "uuid": "^9.0.1",
-    "nan":"^2.22.2"
+    "nan": "^2.22.2",
+    "vary": "^1.1.2"
   },
   "devDependencies": {
     "@types/cors": "^2.8.10",
