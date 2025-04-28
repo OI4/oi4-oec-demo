@@ -1,5 +1,7 @@
 #!/bin/bash
 rm -rf ./build
+rm -rf ./node_modules
+yarn cache clean
 
 mkdir -p ./build/container
 mkdir -p ./build/container/scripts
