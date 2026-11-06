@@ -1,0 +1,17 @@
+version: '3.9'
+
+services:
+  oi4-oec-pv-logger-demo:
+    image: oi4a/oi4-oec-pv-logger-demo:2.0.0-preview.1
+    container_name: oi4-oec-service-demo
+    restart: on-failure
+    volumes:
+      - "${BASE_PATH}/mqtt:/etc/oi4/mqtt"
+      - "${BASE_PATH}/certs:/etc/oi4/certs"
+      - "${BASE_PATH}/secrets:/run/secrets"
+      - "${BASE_PATH}/config:/etc/oi4/config"
+      - "${BASE_PATH}/app:/etc/oi4/app"
+    environment:
+      - OI4_EDGE_EVENT_LEVEL=warning
+      - OI4_EDGE_LOG_LEVEL=debug
+      - TZ=Europe/Berlin

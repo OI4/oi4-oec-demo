@@ -1,0 +1,50 @@
+name: snapshot
+
+env:
+  CI: true
+on:
+  push:
+    branches:
+      - development
+    tags:
+      - "!*"
+jobs:
+  snapshot:
+    name: Setup
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+      - name: setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+      - name: Cache Yarn Dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/yarn
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-
+      - name: Clear Yarn Cache
+        run: yarn cache clean
+      - name: install
+        run: |
+          yarn install
+      # Build packages
+      - name: build
+        run: |
+          yarn build
+      # No test so far -> skip them for now
+      #- name: test
+      #  run: npm test
+      # Publish to Docker Hub if this version is not published
+      - name: Prepare Docker build
+        run: |
+          docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+          npm run docker:prepare
+          docker buildx inspect --bootstrap
+      - name: Docker Build & Push
+        run:  |
+          echo ${{ secrets.DOCKERHUB_TOKEN }} | docker login --username ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
+          npm run docker:build

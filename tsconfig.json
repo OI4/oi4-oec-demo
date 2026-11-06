@@ -31,6 +31,7 @@
     /* Strict Type-Checking Options */
     "strict": false,
     /* Enable all strict type-checking options. */
+    "skipLibCheck": true,
     "noImplicitAny": true,                    /* Raise error on expressions and declarations with an implied 'any' type. */
     // "strictNullChecks": true,              /* Enable strict null checks. */
     // "strictFunctionTypes": true,           /* Enable strict checking of function types. */

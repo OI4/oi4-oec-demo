@@ -5,19 +5,19 @@ import {
     MqttSettings,
     OI4Application
 } from '@oi4/oi4-oec-service-node';
-import {IOI4ApplicationResources, OI4Payload, Resource} from '@oi4/oi4-oec-service-model';
-import {OPCUABuilder} from '@oi4/oi4-oec-service-opcua-model';
+import {IOI4ApplicationResources, OI4Payload, Resources, OPCUABuilder} from '@oi4/oi4-oec-service-model';
 import {ServiceDemoOI4ApplicationResources} from './ServiceDemoOI4ApplicationResources';
 import {WeatherService} from '../weather/WeatherService';
 import {Coordinates} from '../weather/WeatherServiceModel';
+import {IOI4MessageBus} from '@oi4/oi4-oec-service-node/src/messaging/OI4MessageBus';
 
 export class ServiceDemoOI4Application extends OI4Application {
 
     dataSendInterval: number = 60000;
     private readonly weatherService;
 
-    constructor(applicationResources: IOI4ApplicationResources, mqttSettings: MqttSettings, opcUaBuilder: OPCUABuilder, clientPayloadHelper: ClientPayloadHelper, clientCallbacksHelper: ClientCallbacksHelper, mqttMessageProcessor: MqttMessageProcessor, appid: string) {
-        super(applicationResources, mqttSettings, opcUaBuilder, clientPayloadHelper, clientCallbacksHelper, mqttMessageProcessor);
+    constructor(applicationResources: IOI4ApplicationResources, messageBus: IOI4MessageBus, mqttSettings: MqttSettings, opcUaBuilder: OPCUABuilder, clientPayloadHelper: ClientPayloadHelper, clientCallbacksHelper: ClientCallbacksHelper, mqttMessageProcessor: MqttMessageProcessor, appid: string) {
+        super(applicationResources, messageBus, mqttSettings, opcUaBuilder, clientPayloadHelper, clientCallbacksHelper, mqttMessageProcessor);
         this.weatherService = new WeatherService(appid);
         this.initDataPublishing();
     }
@@ -36,8 +36,8 @@ export class ServiceDemoOI4Application extends OI4Application {
                         sv_1: response.main.pressure,
                         sv_2: response.main.humidity,
 
-                        resourceType(): Resource {
-                            return Resource.DATA;
+                        resourceType(): Resources {
+                            return Resources.DATA;
                         }
                     };
                     console.log(pv);

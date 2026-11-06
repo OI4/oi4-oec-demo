@@ -1,0 +1,28 @@
+{
+  "name": "@oi4/oi4-oec-pki-demo",
+  "version": "1.1.0-preview.2",
+  "description": "Simple PKI for demo usage. THIS IS NOT SECURE! DO NOT USE IT FOR SOMETHING ELSE THAN TESTING!",
+  "author": "Open Industry 4.0 Alliance - Community",
+  "license": "MIT",
+  "private": false,
+  "keywords": [
+    "oi4",
+    "pki",
+    "demo"
+  ],
+  "publishConfig": {
+    "access": "restricted",
+    "registry": "https://npm.pkg.github.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:OI4/oi4-oec-demo.git"
+  },
+  "scripts": {
+    "issueCertificate": "./scripts/simple_pki.sh issue_certificate",
+    "revokeCertificate": "./scripts/simple_pki.sh revoke_certificate",
+    "issueSubCA": "./scripts/simple_pki.sh issue_sub_ca",
+    "revokeSubCA": "./scripts/simple_pki.sh revoke_sub_ca",
+    "createRootCA": "./scripts/simple_pki.sh create_root_ca "
+  }
+}

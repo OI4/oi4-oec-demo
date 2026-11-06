@@ -1,0 +1,19 @@
+{
+  "Manufacturer":{"Locale":"en-US","Text":"ACME Corporation"},
+  "ManufacturerUri":"acme.com",
+  "Model":{"Locale":"en-US","Text":"OEC Demo PV logger"},
+  "ProductCode":"OEC-ACME-PV-LOGGER",
+  "HardwareRevision":"",
+  "SoftwareRevision":"0.12.1",
+  "DeviceRevision":"1.0.0",
+  "DeviceManual":"1.0",
+  "DeviceClass":"Utility",
+  "SerialNumber":"F12AB41",
+  "ProductInstanceUri":"oi4/appid/service",
+  "RevisionCounter":0,
+  "Description":
+  {
+    "Locale":"en-US",
+    "Text":"An example OI4 service"
+  }
+}

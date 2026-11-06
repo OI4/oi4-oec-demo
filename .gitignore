@@ -103,6 +103,10 @@ dist
 # oi4-oec-service-demo docker configs
 /packages/oec-service-demo/docker_configs/
 
+# oi4-oec-pki-demo
+.srl
+/packages/oi4-oec-pki-demo/build/
+
 # Custom
 out
 .vscode
@@ -110,3 +114,11 @@ out
 /oi4-service.iml
 .DS_Store
 ./prepare.sh
+/packages/oi4-oec-pki-demo/pki/
+/packages/oi4-oec-service-demo/docker/
+/packages/oi4-oec-service-demo/build/
+/packages/oi4-oec-pv-logger-demo/build/
+/packages/oi4-oec-service-demo-go/testdata/docker_configs/
+/packages/oi4-oec-service-demo-go/coverage.out
+/packages/oi4-oec-service-demo-go/test-report.json
+/packages/oi4-oec-broker/docker/log/
