@@ -100,7 +100,7 @@ dist
 # TernJS port file
 .tern-port
 
-# oi4-oec-pv-logger-demo docker configs
+# oi4-oec-service-demo docker configs
 /packages/oec-service-demo/docker_configs/
 
 # oi4-oec-pki-demo
