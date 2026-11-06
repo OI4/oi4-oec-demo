@@ -1,0 +1,107 @@
+<script type="text/javascript">
+  RED.nodes.registerType('oec-subscribe', {
+    category: 'OEC',
+    color: '#C7DDF0',
+    defaults: {
+      name: { value: '' },
+      app: { type: 'oec-app', required: true },
+      mode: { value: 'resource' },
+      serviceType: { value: '' },
+      appIl: { value: '' },
+      resource: { value: 'Data' },
+      sourceIl: { value: '' },
+      filter: { value: '' },
+      topic: { value: '', validate: function (v) { return this.mode !== 'topic' || !!v; } },
+      output: { value: 'dsm' },
+      ignoreOwn: { value: true },
+    },
+    inputs: 0,
+    outputs: 1,
+    icon: 'font-awesome/fa-sign-in',
+    paletteLabel: 'subscribe',
+    label: function () { return this.name || (this.mode === 'topic' ? this.topic : 'Pub ' + (this.resource || '#')); },
+    oneditprepare: function () {
+      const toggle = function () {
+        const topic = $('#node-input-mode').val() === 'topic';
+        $('.oec-sub-resource').toggle(!topic);
+        $('.oec-sub-topic').toggle(topic);
+      };
+      $('#node-input-mode').on('change', toggle);
+      toggle();
+    },
+  });
+</script>
+
+<script type="text/html" data-template-name="oec-subscribe">
+  <div class="form-row">
+    <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+    <input type="text" id="node-input-name" placeholder="Name">
+  </div>
+  <div class="form-row">
+    <label for="node-input-app"><i class="fa fa-cube"></i> Application</label>
+    <input type="text" id="node-input-app">
+  </div>
+  <div class="form-row">
+    <label for="node-input-mode"><i class="fa fa-filter"></i> Subscribe</label>
+    <select id="node-input-mode"><option value="resource">a resource</option><option value="topic">a topic filter</option></select>
+  </div>
+  <div class="form-row oec-sub-resource">
+    <label for="node-input-serviceType">ServiceType</label>
+    <select id="node-input-serviceType">
+      <option value="">any</option><option>Utility</option><option>OTConnector</option><option>ITConnector</option>
+      <option>CloudConnector</option><option>Persistence</option><option>Aggregation</option><option>Registry</option>
+    </select>
+  </div>
+  <div class="form-row oec-sub-resource">
+    <label for="node-input-appIl">Application</label>
+    <input type="text" id="node-input-appIl" placeholder="Identification Link, empty = any">
+  </div>
+  <div class="form-row oec-sub-resource">
+    <label for="node-input-resource">Resource</label>
+    <select id="node-input-resource">
+      <option value="">any</option><option>Data</option><option>Metadata</option><option>Event</option>
+      <option>Health</option><option>MAM</option><option>Config</option><option>Profile</option>
+      <option>PublicationList</option><option>SubscriptionList</option>
+    </select>
+  </div>
+  <div class="form-row oec-sub-resource">
+    <label for="node-input-sourceIl">Source</label>
+    <input type="text" id="node-input-sourceIl" placeholder="Identification Link, empty = any">
+  </div>
+  <div class="form-row oec-sub-resource">
+    <label for="node-input-filter">Filter</label>
+    <input type="text" id="node-input-filter" placeholder="e.g. Temperature or Syslog/+">
+  </div>
+  <div class="form-row oec-sub-topic">
+    <label for="node-input-topic">Topic</label>
+    <input type="text" id="node-input-topic" placeholder="Oi4v2/+/+/Pub/Data/#">
+  </div>
+  <div class="form-row">
+    <label for="node-input-output"><i class="fa fa-sign-out"></i> Output</label>
+    <select id="node-input-output">
+      <option value="dsm">one message per DataSetMessage</option>
+      <option value="message">the whole NetworkMessage</option>
+    </select>
+  </div>
+  <div class="form-row">
+    <input type="checkbox" id="node-input-ignoreOwn" style="display:inline-block;width:auto;vertical-align:top">
+    <label for="node-input-ignoreOwn" style="width:auto">ignore the publications of the own application</label>
+  </div>
+</script>
+
+<script type="text/html" data-help-name="oec-subscribe">
+  <p>Receives the publications (<code>Pub</code>) of OEC applications. The subscription is listed in the
+    SubscriptionList of the application (OEC Messaging Guideline 9.1.9).</p>
+  <p>Empty settings are wildcards. A <i>Filter</i> without <i>Source</i> matches the Filter of every Source.</p>
+  <h3>Output</h3>
+  <dl class="message-properties">
+    <dt>payload <span class="property-type">object</span></dt>
+    <dd>The <code>Payload</code> of a DataSetMessage (or the whole NetworkMessage).</dd>
+    <dt>dataSetMessage <span class="property-type">object</span></dt>
+    <dd>The whole DataSetMessage.</dd>
+    <dt>oec <span class="property-type">object</span></dt>
+    <dd><code>serviceType, appIl, method, resource, sourceIl, filter, messageId, publisherId, replyTo,
+      dataSetClassId, dataSetWriterId, writerGroupName, source</code>.</dd>
+    <dt>topic <span class="property-type">string</span></dt><dd>the MQTT topic</dd>
+  </dl>
+</script>

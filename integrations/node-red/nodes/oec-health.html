@@ -1,0 +1,60 @@
+<script type="text/javascript">
+  RED.nodes.registerType('oec-health', {
+    category: 'OEC',
+    color: '#8FB8DE',
+    defaults: {
+      name: { value: '' },
+      app: { type: 'oec-app', required: true },
+      asset: { type: 'oec-asset', required: false },
+      initial: { value: '' },
+      score: { value: '', validate: function (v) { return v === '' || (Number.isInteger(Number(v)) && v >= 0 && v <= 100); } },
+    },
+    inputs: 1,
+    outputs: 0,
+    icon: 'font-awesome/fa-heartbeat',
+    align: 'right',
+    paletteLabel: 'health',
+    label: function () { return this.name || 'OEC Health'; },
+  });
+</script>
+
+<script type="text/html" data-template-name="oec-health">
+  <div class="form-row">
+    <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+    <input type="text" id="node-input-name" placeholder="Name">
+  </div>
+  <div class="form-row">
+    <label for="node-input-app"><i class="fa fa-cube"></i> Application</label>
+    <input type="text" id="node-input-app">
+  </div>
+  <div class="form-row">
+    <label for="node-input-asset"><i class="fa fa-microchip"></i> Asset</label>
+    <input type="text" id="node-input-asset">
+  </div>
+  <div class="form-row">
+    <label for="node-input-initial"><i class="fa fa-play"></i> At start</label>
+    <select id="node-input-initial" style="width:50%">
+      <option value="">– keep NORMAL_0 / 100 –</option>
+      <option>NORMAL_0</option><option>FAILURE_1</option><option>CHECK_FUNCTION_2</option>
+      <option>OFF_SPEC_3</option><option>MAINTENANCE_REQUIRED_4</option>
+    </select>
+    <input type="text" id="node-input-score" placeholder="score" style="width:60px">
+  </div>
+</script>
+
+<script type="text/html" data-help-name="oec-health">
+  <p>Sets the Health (OEC Messaging Guideline 9.1.2) of the application or an asset and publishes it.</p>
+  <p><i>Application</i> is the <code>oec-app</code>; with an <i>Asset</i> (<code>oec-asset</code>) the node acts for that asset as <code>Source</code>, otherwise for the application itself.</p>
+  <h3>Input</h3>
+  <dl class="message-properties">
+    <dt>payload <span class="property-type">string | object</span></dt>
+    <dd>A Health state (<code>NORMAL_0</code>, <code>FAILURE_1</code>, <code>CHECK_FUNCTION_2</code>,
+      <code>OFF_SPEC_3</code>, <code>MAINTENANCE_REQUIRED_4</code>; also <code>normal</code>, <code>failure</code>, <code>check</code>, <code>off_spec</code>, <code>maintenance</code>)
+      or <code>{Health, HealthScore}</code>.</dd>
+    <dt class="optional">healthScore <span class="property-type">number</span></dt>
+    <dd>HealthScore 0 … 100 for a string payload; default 100 for NORMAL_0, 0 for FAILURE_1, 75 for
+      MAINTENANCE_REQUIRED_4, else 50.</dd>
+  </dl>
+  <p>The application publishes its Health every heartbeat in addition. <code>NORMAL_0</code> with HealthScore 0
+    is reserved for the graceful disconnect of the application.</p>
+</script>

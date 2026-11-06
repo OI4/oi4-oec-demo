@@ -1,0 +1,154 @@
+<script type="text/javascript">
+  (function () {
+    const mam = {
+      manufacturer: { value: '', required: true },
+      manufacturerUri: { value: '', required: true, validate: RED.validators.regex(/^[^:/\s]+$/) },
+      model: { value: '', required: true },
+      productCode: { value: '', required: true },
+      serialNumber: { value: '', required: true },
+      hardwareRevision: { value: '' },
+      softwareRevision: { value: '' },
+      deviceRevision: { value: '' },
+      deviceManual: { value: '' },
+      deviceClass: { value: '' },
+      description: { value: '' },
+      revisionCounter: { value: -1, validate: RED.validators.number(true) },
+      identificationLink: { value: '' },
+    };
+    const preview = function (prefix) {
+      const update = function () {
+        const body = {};
+        for (const k of Object.keys(mam)) body[k] = $(`#${prefix}-${k}`).val();
+        $.ajax({ url: 'oec/identification-link', type: 'POST', contentType: 'application/json', data: JSON.stringify(body) })
+          .done(function (r) { $('.oec-il-preview').text(r.il); $('.oec-appid-preview').text(r.appId); })
+          .fail(function () { $('.oec-il-preview').text('–'); $('.oec-appid-preview').text('–'); });
+      };
+      for (const k of ['manufacturerUri', 'model', 'productCode', 'serialNumber', 'identificationLink']) {
+        $(`#${prefix}-${k}`).on('change keyup', update);
+      }
+      update();
+    };
+    window.OEC_MAM_DEFAULTS = mam;
+    window.OEC_IL_PREVIEW = preview;
+
+    RED.nodes.registerType('oec-app', {
+      category: 'config',
+      defaults: Object.assign({
+        name: { value: '' },
+        broker: { type: 'oec-broker', required: true },
+        serviceType: { value: 'Utility', required: true },
+        heartbeat: { value: 30, validate: function (v) { const n = Number(v); return Number.isInteger(n) && n >= 1 && n <= 60; } },
+        syslogLevel: { value: 'Notice' },
+      }, mam),
+      label: function () {
+        return this.name || `${this.serviceType}/${this.model || 'OEC application'}`;
+      },
+      oneditprepare: function () {
+        preview('node-config-input');
+      },
+    });
+  })();
+</script>
+
+<script type="text/html" data-template-name="oec-app">
+  <div class="form-row">
+    <label for="node-config-input-name"><i class="fa fa-tag"></i> Name</label>
+    <input type="text" id="node-config-input-name" placeholder="Name">
+  </div>
+  <div class="form-row">
+    <label for="node-config-input-broker"><i class="fa fa-server"></i> Broker</label>
+    <input type="text" id="node-config-input-broker">
+  </div>
+  <div class="form-row">
+    <label for="node-config-input-serviceType"><i class="fa fa-sitemap"></i> ServiceType</label>
+    <select id="node-config-input-serviceType">
+      <option>Utility</option><option>OTConnector</option><option>ITConnector</option><option>CloudConnector</option>
+      <option>Persistence</option><option>Aggregation</option><option>Registry</option>
+    </select>
+  </div>
+  <div class="form-row">
+    <label for="node-config-input-heartbeat"><i class="fa fa-heartbeat"></i> Heartbeat</label>
+    <input type="text" id="node-config-input-heartbeat" style="width:60px"> s (Health, 1 … 60)
+  </div>
+  <div class="form-row">
+    <label for="node-config-input-syslogLevel"><i class="fa fa-list"></i> Syslog</label>
+    <select id="node-config-input-syslogLevel" style="width:auto">
+      <option>Emergency</option><option>Alert</option><option>Critical</option><option>Error</option>
+      <option>Warning</option><option>Notice</option><option>Informational</option>
+    </select> and more severe levels on by default
+  </div>
+  <h4>Master Asset Model</h4>
+  <div class="form-row">
+    <label for="node-config-input-manufacturer">Manufacturer</label>
+    <input type="text" id="node-config-input-manufacturer" placeholder="Example Corp">
+  </div>
+  <div class="form-row">
+    <label for="node-config-input-manufacturerUri">ManufacturerUri</label>
+    <input type="text" id="node-config-input-manufacturerUri" placeholder="example.com">
+  </div>
+  <div class="form-row">
+    <label for="node-config-input-model">Model</label>
+    <input type="text" id="node-config-input-model" placeholder="Node-RED flow">
+  </div>
+  <div class="form-row">
+    <label for="node-config-input-productCode">ProductCode</label>
+    <input type="text" id="node-config-input-productCode">
+  </div>
+  <div class="form-row">
+    <label for="node-config-input-serialNumber">SerialNumber</label>
+    <input type="text" id="node-config-input-serialNumber">
+  </div>
+  <div class="form-row">
+    <label for="node-config-input-softwareRevision">SoftwareRevision</label>
+    <input type="text" id="node-config-input-softwareRevision">
+  </div>
+  <div class="form-row">
+    <label for="node-config-input-hardwareRevision">HardwareRevision</label>
+    <input type="text" id="node-config-input-hardwareRevision">
+  </div>
+  <div class="form-row">
+    <label for="node-config-input-deviceRevision">DeviceRevision</label>
+    <input type="text" id="node-config-input-deviceRevision">
+  </div>
+  <div class="form-row">
+    <label for="node-config-input-deviceManual">DeviceManual</label>
+    <input type="text" id="node-config-input-deviceManual" placeholder="https://…">
+  </div>
+  <div class="form-row">
+    <label for="node-config-input-deviceClass">DeviceClass</label>
+    <input type="text" id="node-config-input-deviceClass" placeholder="Oi4.&lt;ServiceType&gt;">
+  </div>
+  <div class="form-row">
+    <label for="node-config-input-description">Description</label>
+    <input type="text" id="node-config-input-description">
+  </div>
+  <div class="form-row">
+    <label for="node-config-input-revisionCounter">RevisionCounter</label>
+    <input type="text" id="node-config-input-revisionCounter" style="width:80px">
+  </div>
+  <div class="form-row">
+    <label for="node-config-input-identificationLink">Ident. Link</label>
+    <input type="text" id="node-config-input-identificationLink" placeholder="generated from the Oi4Identifier">
+  </div>
+  <div class="form-tips">Identification Link: <code class="oec-il-preview"></code><br>AppId: <code class="oec-appid-preview"></code></div>
+</script>
+
+<script type="text/html" data-help-name="oec-app">
+  <p>An OEC application (OEC Messaging Guideline 2.0, Messaging Level 2) on the message bus.</p>
+  <p>The application connects to its broker, publishes its Birth (MAM, Health, Profile, PublicationList,
+    SubscriptionList, Config, Metadata and Data), the Health at least every <i>Heartbeat</i> seconds, answers
+    <code>Get</code>, <code>Set</code> and <code>Del</code> requests and publishes <code>NORMAL_0</code>/0 before a
+    graceful disconnect. Its Last Will is <code>FAILURE_1</code>/0.</p>
+  <p>The resource nodes <code>oec-health</code>, <code>oec-data</code>, <code>oec-config</code>,
+    <code>oec-event</code>, <code>oec-subscribe</code> and <code>oec-get</code> use the application; with an
+    <code>oec-asset</code> they act for an asset the application represents.</p>
+  <h3>Syslog levels</h3>
+  <p>The application publishes its Syslog events (<code>oec-event</code>) of the selected level and the more severe
+    ones; the others are dropped. Debug is always off by default. The PublicationList lists every level with
+    <code>Config</code> <code>MODE_1</code>: a <code>Set PublicationList</code> of the bus switches a level on
+    (<code>FILTER_4</code>) or off (<code>OFF_0</code>) until the next deploy.</p>
+  <h3>Identification Link</h3>
+  <p>Without an explicit Identification Link it is the Oi4Identifier
+    <code>ManufacturerUri/Model/ProductCode/SerialNumber</code>, the last three dnp-encoded. Without a DeviceClass
+    the application uses <code>Oi4.&lt;ServiceType&gt;</code>.</p>
+</script>

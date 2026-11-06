@@ -1,0 +1,95 @@
+<script type="text/javascript">
+  RED.nodes.registerType('oec-asset', {
+    category: 'config',
+    defaults: Object.assign({ name: { value: '' } }, window.OEC_MAM_DEFAULTS || {
+      manufacturer: { value: '', required: true },
+      manufacturerUri: { value: '', required: true },
+      model: { value: '', required: true },
+      productCode: { value: '', required: true },
+      serialNumber: { value: '', required: true },
+      hardwareRevision: { value: '' },
+      softwareRevision: { value: '' },
+      deviceRevision: { value: '' },
+      deviceManual: { value: '' },
+      deviceClass: { value: '' },
+      description: { value: '' },
+      revisionCounter: { value: -1 },
+      identificationLink: { value: '' },
+    }),
+    label: function () {
+      return this.name || `${this.model || 'asset'} ${this.serialNumber || ''}`.trim();
+    },
+    oneditprepare: function () {
+      if (window.OEC_IL_PREVIEW) window.OEC_IL_PREVIEW('node-config-input');
+    },
+  });
+</script>
+
+<script type="text/html" data-template-name="oec-asset">
+  <div class="form-row">
+    <label for="node-config-input-name"><i class="fa fa-tag"></i> Name</label>
+    <input type="text" id="node-config-input-name" placeholder="Name">
+  </div>
+  <h4>Master Asset Model</h4>
+  <div class="form-row">
+    <label for="node-config-input-manufacturer">Manufacturer</label>
+    <input type="text" id="node-config-input-manufacturer">
+  </div>
+  <div class="form-row">
+    <label for="node-config-input-manufacturerUri">ManufacturerUri</label>
+    <input type="text" id="node-config-input-manufacturerUri" placeholder="example.com">
+  </div>
+  <div class="form-row">
+    <label for="node-config-input-model">Model</label>
+    <input type="text" id="node-config-input-model">
+  </div>
+  <div class="form-row">
+    <label for="node-config-input-productCode">ProductCode</label>
+    <input type="text" id="node-config-input-productCode">
+  </div>
+  <div class="form-row">
+    <label for="node-config-input-serialNumber">SerialNumber</label>
+    <input type="text" id="node-config-input-serialNumber">
+  </div>
+  <div class="form-row">
+    <label for="node-config-input-softwareRevision">SoftwareRevision</label>
+    <input type="text" id="node-config-input-softwareRevision">
+  </div>
+  <div class="form-row">
+    <label for="node-config-input-hardwareRevision">HardwareRevision</label>
+    <input type="text" id="node-config-input-hardwareRevision">
+  </div>
+  <div class="form-row">
+    <label for="node-config-input-deviceRevision">DeviceRevision</label>
+    <input type="text" id="node-config-input-deviceRevision">
+  </div>
+  <div class="form-row">
+    <label for="node-config-input-deviceManual">DeviceManual</label>
+    <input type="text" id="node-config-input-deviceManual">
+  </div>
+  <div class="form-row">
+    <label for="node-config-input-deviceClass">DeviceClass</label>
+    <input type="text" id="node-config-input-deviceClass">
+  </div>
+  <div class="form-row">
+    <label for="node-config-input-description">Description</label>
+    <input type="text" id="node-config-input-description">
+  </div>
+  <div class="form-row">
+    <label for="node-config-input-revisionCounter">RevisionCounter</label>
+    <input type="text" id="node-config-input-revisionCounter" style="width:80px">
+  </div>
+  <div class="form-row">
+    <label for="node-config-input-identificationLink">Ident. Link</label>
+    <input type="text" id="node-config-input-identificationLink" placeholder="generated from the Oi4Identifier">
+  </div>
+  <div class="form-tips">Identification Link: <code class="oec-il-preview"></code></div>
+</script>
+
+<script type="text/html" data-help-name="oec-asset">
+  <p>An asset an OEC application represents, e.g. a sensor or a machine behind a connector (OEC Messaging
+    Guideline 7.5). It is a <code>Source</code> with its own MAM, Health, Profile, Config, Data, Metadata, Event and
+    PublicationList.</p>
+  <p>Select the asset in a resource node to publish for the asset instead of the application. The asset is on the
+    message bus as long as at least one deployed node uses it.</p>
+</script>

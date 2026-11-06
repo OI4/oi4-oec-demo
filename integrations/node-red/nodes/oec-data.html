@@ -1,0 +1,93 @@
+<script type="text/javascript">
+  RED.nodes.registerType('oec-data', {
+    category: 'OEC',
+    color: '#8FB8DE',
+    defaults: {
+      name: { value: '' },
+      app: { type: 'oec-app', required: true },
+      asset: { type: 'oec-asset', required: false },
+      tag: { value: '', required: true, validate: RED.validators.regex(/^[A-Za-z0-9_-]{1,128}$/) },
+      description: { value: '' },
+      fields: { value: '', validate: function (v) { if (!v || !v.trim()) return true; try { JSON.parse(v); return true; } catch (e) { return false; } } },
+      writable: { value: false },
+    },
+    inputs: 1,
+    outputs: 1,
+    icon: 'font-awesome/fa-line-chart',
+    paletteLabel: 'data',
+    outputLabels: ['Set Data'],
+    label: function () { return this.name || (this.tag ? 'Data ' + this.tag : 'OEC Data'); },
+    oneditprepare: function () {
+      this.editor = RED.editor.createEditor({ id: 'node-input-fields-editor', mode: 'ace/mode/json', value: $('#node-input-fields').val() });
+    },
+    oneditsave: function () {
+      $('#node-input-fields').val(this.editor.getValue());
+      this.editor.destroy();
+      delete this.editor;
+    },
+    oneditcancel: function () {
+      this.editor.destroy();
+      delete this.editor;
+    },
+  });
+</script>
+
+<script type="text/html" data-template-name="oec-data">
+  <div class="form-row">
+    <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+    <input type="text" id="node-input-name" placeholder="Name">
+  </div>
+  <div class="form-row">
+    <label for="node-input-app"><i class="fa fa-cube"></i> Application</label>
+    <input type="text" id="node-input-app">
+  </div>
+  <div class="form-row">
+    <label for="node-input-asset"><i class="fa fa-microchip"></i> Asset</label>
+    <input type="text" id="node-input-asset">
+  </div>
+  <div class="form-row">
+    <label for="node-input-tag"><i class="fa fa-bookmark"></i> Tag</label>
+    <input type="text" id="node-input-tag" placeholder="Temperature">
+  </div>
+  <div class="form-row">
+    <label for="node-input-description"><i class="fa fa-info"></i> Description</label>
+    <input type="text" id="node-input-description">
+  </div>
+  <div class="form-row">
+    <input type="checkbox" id="node-input-writable" style="display:inline-block;width:auto;vertical-align:top">
+    <label for="node-input-writable" style="width:auto">writable (accept <code>Set Data</code>)</label>
+  </div>
+  <div class="form-row node-text-editor-row">
+    <label style="width:100%"><i class="fa fa-list"></i> Fields (JSON, optional)</label>
+    <input type="hidden" id="node-input-fields">
+    <div style="height:180px;min-height:120px" class="node-text-editor" id="node-input-fields-editor"></div>
+  </div>
+  <div class="form-tips">Without fields they are derived from the values. Example:
+    <code>[{"Name":"Temperature","Type":"Double","Unit":"CEL"},{"Name":"Humidity","Type":"Double","Unit":"P1"}]</code></div>
+</script>
+
+<script type="text/html" data-help-name="oec-data">
+  <p>A <code>Data</code> DataSet (OEC Messaging Guideline 9.1.4) with its <code>Metadata</code> (9.1.5). The node
+    publishes the values, lists the DataSet in the PublicationList from its first value on and answers
+    <code>Get Data</code> and <code>Get Metadata</code>.</p>
+  <p><i>Application</i> is the <code>oec-app</code>; with an <i>Asset</i> (<code>oec-asset</code>) the node acts for that asset as <code>Source</code>, otherwise for the application itself.</p>
+  <h3>Input</h3>
+  <dl class="message-properties">
+    <dt>payload <span class="property-type">object | number | string | boolean</span></dt>
+    <dd>The values <code>{field: value}</code>; missing fields keep their last value. A single value is the value
+      of the first field (<code>Value</code> without fields).</dd>
+    <dt class="optional">timestamp <span class="property-type">number | string</span></dt>
+    <dd>Time of the values (ms since the epoch or ISO 8601); default now.</dd>
+  </dl>
+  <h3>Output</h3>
+  <p>With <i>writable</i> a <code>Set Data</code> of the message bus changes the values, is answered with the new
+    values and the Status <code>Good</code>, and is sent here:</p>
+  <dl class="message-properties">
+    <dt>payload <span class="property-type">object</span></dt><dd>the new values</dd>
+    <dt>oec <span class="property-type">object</span></dt><dd><code>{reason: "set", source, tag, messageId}</code></dd>
+  </dl>
+  <h3>Fields</h3>
+  <p>A JSON array <code>[{Name, Type, Unit?, Description?}]</code> or an object <code>{Name: Type}</code>. Types:
+    <code>Boolean</code>, <code>Int32</code>, <code>Int64</code>, <code>UInt32</code>, <code>Double</code>,
+    <code>String</code>, <code>DateTime</code>, … A changed shape of derived fields gives a new DataSetClassId.</p>
+</script>

@@ -49,6 +49,29 @@ GitHub release of this repository.
 Documentation, entities, behaviour on the bus and tests:
 [`integrations/home-assistant/README.md`](integrations/home-assistant/README.md).
 
+## Node-RED nodes
+
+[`integrations/node-red/`](integrations/node-red/) is the npm package
+`@oi4/node-red-oec` for [Node-RED](https://nodered.org/): a flow becomes an
+OEC 2.0 application (Messaging Level 2). Config nodes create the broker
+connection (from the OEC container storage or set by hand), the
+applications and the assets they represent; one node per resource
+(`oec-health`, `oec-data`, `oec-config`, `oec-event`) publishes the values,
+and the application answers `Get` requests from them. `oec-subscribe` and
+`oec-get` receive the publications of other applications and send `Get`
+requests.
+
+Install it in the Node-RED user directory and restart Node-RED:
+
+```sh
+cd ~/.node-red
+npm install /path/to/oi4-oec-demo/integrations/node-red
+```
+
+*Import → Examples → @oi4/node-red-oec* has a demo flow. Documentation,
+nodes, behaviour on the bus and tests:
+[`integrations/node-red/README.md`](integrations/node-red/README.md).
+
 ## Where the demos come from
 
 The demos are developed in the OEC source tree, in the folders `oec/demos`,
@@ -65,7 +88,9 @@ the OEC source tree.
 The Home Assistant integration comes from
 `oec/integrations/home-assistant`: HACS needs `custom_components/oi4_oec/`
 and `hacs.json` at the root of the repository, all other files of the
-folder (README, tests, checks) are in `integrations/home-assistant/`.
+folder (README, tests, checks) are in `integrations/home-assistant/`. The
+Node-RED nodes come unmodified from `oec/integrations/node-red` as
+`integrations/node-red/`.
 
 Changes are made in `oec/demos`, `oec/demos-smart-sensors` and
 `oec/integrations` of the OEC source tree and copied here; do not edit

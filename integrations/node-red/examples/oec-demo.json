@@ -1,0 +1,534 @@
+[
+  {
+    "id": "a1f0c0de00000001",
+    "type": "tab",
+    "label": "OEC demo",
+    "disabled": false,
+    "info": "An OEC application with an asset. Set the Root of the broker to a container storage (see README)."
+  },
+  {
+    "id": "b",
+    "type": "oec-broker",
+    "name": "OEC broker",
+    "mode": "container",
+    "root": "/",
+    "host": "",
+    "port": 8883,
+    "tls": true,
+    "tlsConfig": "",
+    "clientId": "",
+    "maxPacketSize": 262144
+  },
+  {
+    "id": "app",
+    "type": "oec-app",
+    "name": "Node-RED demo",
+    "broker": "b",
+    "serviceType": "Utility",
+    "heartbeat": 30,
+    "syslogLevel": "Notice",
+    "model": "NodeRedDemo",
+    "serialNumber": "1",
+    "deviceClass": "",
+    "manufacturer": "Example Corp",
+    "manufacturerUri": "example.com",
+    "productCode": "NR",
+    "hardwareRevision": "",
+    "softwareRevision": "1.0.0",
+    "deviceRevision": "",
+    "deviceManual": "",
+    "description": "",
+    "revisionCounter": -1,
+    "identificationLink": ""
+  },
+  {
+    "id": "asset",
+    "type": "oec-asset",
+    "name": "Example sensor",
+    "model": "ExampleSensor",
+    "serialNumber": "S1",
+    "deviceClass": "Sensor",
+    "manufacturer": "Example Corp",
+    "manufacturerUri": "example.com",
+    "productCode": "NR",
+    "hardwareRevision": "",
+    "softwareRevision": "",
+    "deviceRevision": "",
+    "deviceManual": "",
+    "description": "",
+    "revisionCounter": -1,
+    "identificationLink": ""
+  },
+  {
+    "id": "c1",
+    "type": "comment",
+    "z": "a1f0c0de00000001",
+    "x": 100,
+    "y": 40,
+    "name": "Publish Data of the application and its asset",
+    "info": ""
+  },
+  {
+    "id": "i1",
+    "type": "inject",
+    "z": "a1f0c0de00000001",
+    "x": 130,
+    "y": 100,
+    "name": "every 5 s",
+    "props": [
+      {
+        "p": "payload"
+      }
+    ],
+    "repeat": "5",
+    "crontab": "",
+    "once": true,
+    "onceDelay": 1,
+    "topic": "",
+    "payload": "",
+    "payloadType": "date",
+    "wires": [
+      [
+        "f1",
+        "f2"
+      ]
+    ]
+  },
+  {
+    "id": "f1",
+    "type": "function",
+    "z": "a1f0c0de00000001",
+    "x": 320,
+    "y": 80,
+    "name": "climate",
+    "func": "return { payload: { Temperature: 20 + Math.round(Math.random() * 50) / 10, Humidity: 40 + Math.round(Math.random() * 200) / 10 } };",
+    "outputs": 1,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "wires": [
+      [
+        "d1"
+      ]
+    ]
+  },
+  {
+    "id": "f2",
+    "type": "function",
+    "z": "a1f0c0de00000001",
+    "x": 320,
+    "y": 120,
+    "name": "level",
+    "func": "return { payload: Math.round(Math.random() * 100) };",
+    "outputs": 1,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "wires": [
+      [
+        "d2"
+      ]
+    ]
+  },
+  {
+    "id": "d1",
+    "type": "oec-data",
+    "z": "a1f0c0de00000001",
+    "x": 520,
+    "y": 80,
+    "name": "",
+    "app": "app",
+    "asset": "",
+    "tag": "Climate",
+    "description": "Room climate",
+    "fields": "[{\"Name\": \"Temperature\", \"Type\": \"Double\", \"Unit\": \"CEL\"}, {\"Name\": \"Humidity\", \"Type\": \"Double\", \"Unit\": \"P1\"}]",
+    "writable": false,
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "d2",
+    "type": "oec-data",
+    "z": "a1f0c0de00000001",
+    "x": 520,
+    "y": 120,
+    "name": "",
+    "app": "app",
+    "asset": "asset",
+    "tag": "Level",
+    "description": "Fill level",
+    "fields": "[{\"Name\": \"Value\", \"Type\": \"Double\", \"Unit\": \"P1\"}]",
+    "writable": false,
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "c2",
+    "type": "comment",
+    "z": "a1f0c0de00000001",
+    "x": 100,
+    "y": 180,
+    "name": "Writable Data and Config: Set of the message bus",
+    "info": ""
+  },
+  {
+    "id": "i2",
+    "type": "inject",
+    "z": "a1f0c0de00000001",
+    "x": 130,
+    "y": 240,
+    "name": "21 °C",
+    "props": [
+      {
+        "p": "payload"
+      }
+    ],
+    "repeat": "",
+    "crontab": "",
+    "once": true,
+    "onceDelay": 1,
+    "topic": "",
+    "payload": "21",
+    "payloadType": "num",
+    "wires": [
+      [
+        "d3"
+      ]
+    ]
+  },
+  {
+    "id": "d3",
+    "type": "oec-data",
+    "z": "a1f0c0de00000001",
+    "x": 330,
+    "y": 240,
+    "name": "",
+    "app": "app",
+    "asset": "",
+    "tag": "Setpoint",
+    "description": "Temperature setpoint",
+    "fields": "[{\"Name\": \"Value\", \"Type\": \"Double\", \"Unit\": \"CEL\"}]",
+    "writable": true,
+    "wires": [
+      [
+        "dbg1"
+      ]
+    ]
+  },
+  {
+    "id": "dbg1",
+    "type": "debug",
+    "z": "a1f0c0de00000001",
+    "x": 540,
+    "y": 240,
+    "name": "Set Setpoint",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "true",
+    "targetType": "full",
+    "statusVal": "",
+    "statusType": "auto"
+  },
+  {
+    "id": "cf",
+    "type": "oec-config",
+    "z": "a1f0c0de00000001",
+    "x": 330,
+    "y": 300,
+    "name": "",
+    "app": "app",
+    "asset": "",
+    "contextName": "Settings",
+    "description": "Settings of the demo",
+    "definition": "{\n  \"Publication\": {\n    \"Interval\": {\n      \"Type\": \"Number\",\n      \"Value\": \"5\",\n      \"Unit\": \"SEC\",\n      \"Description\": \"Publication interval\",\n      \"Validation\": {\n        \"Min\": 1,\n        \"Max\": 3600\n      }\n    },\n    \"Enabled\": {\n      \"Type\": \"Boolean\",\n      \"Value\": \"true\"\n    }\n  },\n  \"Access\": {\n    \"Token\": {\n      \"Type\": \"String\",\n      \"Value\": \"secret\",\n      \"Sensitive\": true\n    }\n  }\n}",
+    "wires": [
+      [
+        "dbg2",
+        "f3"
+      ]
+    ]
+  },
+  {
+    "id": "dbg2",
+    "type": "debug",
+    "z": "a1f0c0de00000001",
+    "x": 540,
+    "y": 300,
+    "name": "Settings",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "true",
+    "targetType": "full",
+    "statusVal": "",
+    "statusType": "auto"
+  },
+  {
+    "id": "f3",
+    "type": "function",
+    "z": "a1f0c0de00000001",
+    "x": 540,
+    "y": 340,
+    "name": "log",
+    "func": "if (msg.oec.reason !== \"set\") return null;\nreturn { payload: \"Settings changed\" };",
+    "outputs": 1,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "wires": [
+      [
+        "e1"
+      ]
+    ]
+  },
+  {
+    "id": "e1",
+    "type": "oec-event",
+    "z": "a1f0c0de00000001",
+    "x": 730,
+    "y": 340,
+    "name": "",
+    "app": "app",
+    "asset": "",
+    "category": "Syslog",
+    "facility": 1,
+    "severity": "5",
+    "level": "",
+    "number": 0,
+    "description": ""
+  },
+  {
+    "id": "c3",
+    "type": "comment",
+    "z": "a1f0c0de00000001",
+    "x": 100,
+    "y": 400,
+    "name": "Health and Events of the asset",
+    "info": ""
+  },
+  {
+    "id": "i3",
+    "type": "inject",
+    "z": "a1f0c0de00000001",
+    "x": 150,
+    "y": 460,
+    "name": "maintenance",
+    "props": [
+      {
+        "p": "payload"
+      }
+    ],
+    "repeat": "",
+    "crontab": "",
+    "once": false,
+    "onceDelay": 0.1,
+    "topic": "",
+    "payload": "MAINTENANCE_REQUIRED_4",
+    "payloadType": "str",
+    "wires": [
+      [
+        "h1"
+      ]
+    ]
+  },
+  {
+    "id": "i4",
+    "type": "inject",
+    "z": "a1f0c0de00000001",
+    "x": 150,
+    "y": 500,
+    "name": "normal",
+    "props": [
+      {
+        "p": "payload"
+      }
+    ],
+    "repeat": "",
+    "crontab": "",
+    "once": true,
+    "onceDelay": 1,
+    "topic": "",
+    "payload": "NORMAL_0",
+    "payloadType": "str",
+    "wires": [
+      [
+        "h1"
+      ]
+    ]
+  },
+  {
+    "id": "h1",
+    "type": "oec-health",
+    "z": "a1f0c0de00000001",
+    "x": 360,
+    "y": 480,
+    "name": "",
+    "app": "app",
+    "asset": "asset",
+    "initial": "",
+    "score": ""
+  },
+  {
+    "id": "i5",
+    "type": "inject",
+    "z": "a1f0c0de00000001",
+    "x": 150,
+    "y": 560,
+    "name": "door open",
+    "props": [
+      {
+        "p": "payload"
+      }
+    ],
+    "repeat": "",
+    "crontab": "",
+    "once": false,
+    "onceDelay": 0.1,
+    "topic": "",
+    "payload": "door open",
+    "payloadType": "str",
+    "wires": [
+      [
+        "e2"
+      ]
+    ]
+  },
+  {
+    "id": "e2",
+    "type": "oec-event",
+    "z": "a1f0c0de00000001",
+    "x": 360,
+    "y": 560,
+    "name": "",
+    "app": "app",
+    "asset": "asset",
+    "category": "Generic",
+    "facility": 1,
+    "severity": "6",
+    "level": "Door",
+    "number": 1,
+    "description": ""
+  },
+  {
+    "id": "c4",
+    "type": "comment",
+    "z": "a1f0c0de00000001",
+    "x": 100,
+    "y": 620,
+    "name": "Consumer: Pub of other applications and Get requests",
+    "info": ""
+  },
+  {
+    "id": "s1",
+    "type": "oec-subscribe",
+    "z": "a1f0c0de00000001",
+    "x": 150,
+    "y": 680,
+    "name": "",
+    "app": "app",
+    "mode": "resource",
+    "serviceType": "",
+    "appIl": "",
+    "resource": "Health",
+    "sourceIl": "",
+    "filter": "",
+    "topic": "",
+    "output": "dsm",
+    "ignoreOwn": true,
+    "wires": [
+      [
+        "dbg3"
+      ]
+    ]
+  },
+  {
+    "id": "dbg3",
+    "type": "debug",
+    "z": "a1f0c0de00000001",
+    "x": 360,
+    "y": 680,
+    "name": "Health of the bus",
+    "active": false,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "true",
+    "targetType": "full",
+    "statusVal": "",
+    "statusType": "auto"
+  },
+  {
+    "id": "i6",
+    "type": "inject",
+    "z": "a1f0c0de00000001",
+    "x": 150,
+    "y": 740,
+    "name": "Get MAM",
+    "props": [
+      {
+        "p": "payload"
+      }
+    ],
+    "repeat": "",
+    "crontab": "",
+    "once": false,
+    "onceDelay": 0.1,
+    "topic": "",
+    "payload": "",
+    "payloadType": "date",
+    "wires": [
+      [
+        "g1"
+      ]
+    ]
+  },
+  {
+    "id": "g1",
+    "type": "oec-get",
+    "z": "a1f0c0de00000001",
+    "x": 350,
+    "y": 740,
+    "name": "",
+    "app": "app",
+    "serviceType": "Utility",
+    "appIl": "example.com/NodeRedDemo/NR/1",
+    "resource": "MAM",
+    "sourceIl": "",
+    "filter": "",
+    "perPage": 0,
+    "page": 0,
+    "timeout": 5,
+    "wires": [
+      [
+        "dbg4"
+      ]
+    ]
+  },
+  {
+    "id": "dbg4",
+    "type": "debug",
+    "z": "a1f0c0de00000001",
+    "x": 560,
+    "y": 740,
+    "name": "MAM",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "payload",
+    "targetType": "msg",
+    "statusVal": "",
+    "statusType": "auto"
+  }
+]

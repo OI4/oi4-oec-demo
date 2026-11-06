@@ -1,0 +1,56 @@
+{
+  "name": "@oi4/node-red-oec",
+  "version": "0.1.0",
+  "description": "Node-RED nodes for OI4 Open Edge Computing (OEC 2.0): OEC applications and assets with MAM, Health, Data, Metadata, Config, Event and their lists, plus consumer nodes for Pub and Get",
+  "license": "MIT",
+  "author": "Open Industry 4.0 Alliance",
+  "homepage": "https://github.com/OI4/oi4-oec-demo/tree/HEAD/integrations/node-red",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/OI4/oi4-oec-demo.git",
+    "directory": "integrations/node-red"
+  },
+  "keywords": [
+    "node-red",
+    "oi4",
+    "oec",
+    "open-edge-computing",
+    "mqtt",
+    "opc-ua-pubsub"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "files": [
+    "lib/",
+    "nodes/",
+    "examples/",
+    "README.md",
+    "LICENSE"
+  ],
+  "node-red": {
+    "version": ">=3.1.0",
+    "nodes": {
+      "oec-broker": "nodes/oec-broker.js",
+      "oec-app": "nodes/oec-app.js",
+      "oec-asset": "nodes/oec-asset.js",
+      "oec-health": "nodes/oec-health.js",
+      "oec-data": "nodes/oec-data.js",
+      "oec-config": "nodes/oec-config.js",
+      "oec-event": "nodes/oec-event.js",
+      "oec-subscribe": "nodes/oec-subscribe.js",
+      "oec-get": "nodes/oec-get.js"
+    }
+  },
+  "scripts": {
+    "test": "node --test test/*.test.js"
+  },
+  "dependencies": {
+    "mqtt": "^5.16.1"
+  },
+  "devDependencies": {
+    "aedes": "^1.2.0",
+    "node-red": "^5.0.9",
+    "node-red-node-test-helper": "^0.3.6"
+  }
+}

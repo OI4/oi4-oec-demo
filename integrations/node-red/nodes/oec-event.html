@@ -1,0 +1,99 @@
+<script type="text/javascript">
+  RED.nodes.registerType('oec-event', {
+    category: 'OEC',
+    color: '#8FB8DE',
+    defaults: {
+      name: { value: '' },
+      app: { type: 'oec-app', required: true },
+      asset: { type: 'oec-asset', required: false },
+      category: { value: 'Syslog' },
+      facility: { value: 1, validate: function (v) { const n = Number(v); return Number.isInteger(n) && n >= 0 && n <= 23; } },
+      severity: { value: '5' },
+      level: { value: '', validate: function (v) { return this.category !== 'Generic' || /^[A-Za-z0-9_-]{1,128}$/.test(v); } },
+      number: { value: 0 },
+      description: { value: '' },
+    },
+    inputs: 1,
+    outputs: 0,
+    icon: 'font-awesome/fa-bell',
+    align: 'right',
+    paletteLabel: 'event',
+    label: function () { return this.name || (this.category === 'Generic' ? 'Event ' + (this.level || 'Generic') : 'Event Syslog'); },
+    oneditprepare: function () {
+      const toggle = function () {
+        const generic = $('#node-input-category').val() === 'Generic';
+        $('.oec-event-syslog').toggle(!generic);
+        $('.oec-event-generic').toggle(generic);
+      };
+      $('#node-input-category').on('change', toggle);
+      toggle();
+    },
+  });
+</script>
+
+<script type="text/html" data-template-name="oec-event">
+  <div class="form-row">
+    <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+    <input type="text" id="node-input-name" placeholder="Name">
+  </div>
+  <div class="form-row">
+    <label for="node-input-app"><i class="fa fa-cube"></i> Application</label>
+    <input type="text" id="node-input-app">
+  </div>
+  <div class="form-row">
+    <label for="node-input-asset"><i class="fa fa-microchip"></i> Asset</label>
+    <input type="text" id="node-input-asset">
+  </div>
+  <div class="form-row">
+    <label for="node-input-category"><i class="fa fa-folder"></i> Category</label>
+    <select id="node-input-category"><option>Syslog</option><option>Generic</option></select>
+  </div>
+  <div class="form-row oec-event-syslog">
+    <label for="node-input-facility">Facility</label>
+    <input type="text" id="node-input-facility" style="width:60px"> (0 … 23, 1 = user-level)
+  </div>
+  <div class="form-row oec-event-syslog">
+    <label for="node-input-severity">Severity</label>
+    <select id="node-input-severity">
+      <option value="0">0 Emergency</option><option value="1">1 Alert</option><option value="2">2 Critical</option>
+      <option value="3">3 Error</option><option value="4">4 Warning</option><option value="5">5 Notice</option>
+      <option value="6">6 Informational</option><option value="7">7 Debug</option>
+    </select>
+  </div>
+  <div class="form-row oec-event-generic">
+    <label for="node-input-level">Level</label>
+    <input type="text" id="node-input-level" placeholder="DoorOpen">
+  </div>
+  <div class="form-row oec-event-generic">
+    <label for="node-input-number">Number</label>
+    <input type="text" id="node-input-number" style="width:100px">
+  </div>
+  <div class="form-row oec-event-generic">
+    <label for="node-input-description">Description</label>
+    <input type="text" id="node-input-description">
+  </div>
+</script>
+
+<script type="text/html" data-help-name="oec-event">
+  <p>Publishes an <code>Event</code> (OEC Messaging Guideline 9.1.6) of the application or an asset. Each
+    published <code>&lt;Category&gt;/&lt;Level&gt;</code> is listed in the PublicationList.</p>
+  <p><i>Application</i> is the <code>oec-app</code>; with an <i>Asset</i> (<code>oec-asset</code>) the node acts for that asset as <code>Source</code>, otherwise for the application itself.</p>
+  <h3>Syslog</h3>
+  <dl class="message-properties">
+    <dt>payload <span class="property-type">string | object</span></dt>
+    <dd>The message text (<code>MSG</code>) or <code>{MSG, HEADER}</code>.</dd>
+    <dt class="optional">severity <span class="property-type">number | string</span></dt>
+    <dd>0 … 7 or the name (<code>Error</code>, <code>Warning</code>, …); overrides the setting.</dd>
+    <dt class="optional">facility <span class="property-type">number</span></dt>
+    <dd>0 … 23; overrides the setting. Number = Facility × 8 + Severity.</dd>
+  </dl>
+  <p>For the application itself only the Syslog levels switched on in the <code>oec-app</code> are published
+    (default <code>Notice</code> and more severe); the status shows <i>(off)</i> for a dropped event.</p>
+  <h3>Generic</h3>
+  <dl class="message-properties">
+    <dt>payload <span class="property-type">string | object</span></dt>
+    <dd>A string is the <code>Description</code>, an object the <code>Details</code>.</dd>
+    <dt class="optional">level, number, description</dt>
+    <dd>Override the settings.</dd>
+  </dl>
+</script>

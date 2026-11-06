@@ -1,0 +1,90 @@
+<script type="text/javascript">
+  RED.nodes.registerType('oec-get', {
+    category: 'OEC',
+    color: '#C7DDF0',
+    defaults: {
+      name: { value: '' },
+      app: { type: 'oec-app', required: true },
+      serviceType: { value: 'Utility' },
+      appIl: { value: '' },
+      resource: { value: 'Data' },
+      sourceIl: { value: '' },
+      filter: { value: '' },
+      perPage: { value: 0, validate: RED.validators.number(true) },
+      page: { value: 0, validate: RED.validators.number(true) },
+      timeout: { value: 5, validate: RED.validators.number(true) },
+    },
+    inputs: 1,
+    outputs: 1,
+    icon: 'font-awesome/fa-question-circle',
+    paletteLabel: 'get',
+    label: function () { return this.name || 'Get ' + (this.resource || ''); },
+  });
+</script>
+
+<script type="text/html" data-template-name="oec-get">
+  <div class="form-row">
+    <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+    <input type="text" id="node-input-name" placeholder="Name">
+  </div>
+  <div class="form-row">
+    <label for="node-input-app"><i class="fa fa-cube"></i> Application</label>
+    <input type="text" id="node-input-app">
+  </div>
+  <div class="form-row">
+    <label for="node-input-serviceType">ServiceType</label>
+    <select id="node-input-serviceType">
+      <option>Utility</option><option>OTConnector</option><option>ITConnector</option><option>CloudConnector</option>
+      <option>Persistence</option><option>Aggregation</option><option>Registry</option>
+    </select>
+  </div>
+  <div class="form-row">
+    <label for="node-input-appIl">Application</label>
+    <input type="text" id="node-input-appIl" placeholder="Identification Link of the target">
+  </div>
+  <div class="form-row">
+    <label for="node-input-resource">Resource</label>
+    <select id="node-input-resource">
+      <option>Data</option><option>Metadata</option><option>Config</option><option>Health</option><option>MAM</option>
+      <option>Profile</option><option>PublicationList</option><option>SubscriptionList</option>
+    </select>
+  </div>
+  <div class="form-row">
+    <label for="node-input-sourceIl">Source</label>
+    <input type="text" id="node-input-sourceIl" placeholder="Identification Link, empty = all">
+  </div>
+  <div class="form-row">
+    <label for="node-input-filter">Filter</label>
+    <input type="text" id="node-input-filter" placeholder="Tag or context name">
+  </div>
+  <div class="form-row">
+    <label for="node-input-perPage">Per page</label>
+    <input type="text" id="node-input-perPage" style="width:60px">
+    <label for="node-input-page" style="margin-left:10px;width:40px">Page</label>
+    <input type="text" id="node-input-page" style="width:60px">
+  </div>
+  <div class="form-row">
+    <label for="node-input-timeout"><i class="fa fa-clock-o"></i> Timeout</label>
+    <input type="text" id="node-input-timeout" style="width:60px"> s
+  </div>
+</script>
+
+<script type="text/html" data-help-name="oec-get">
+  <p>Sends a <code>Get</code> request (OEC Messaging Guideline 8.3) to an OEC application and sends the answer.
+    Without <i>Per page</i> all pages of a paginated answer are collected.</p>
+  <h3>Input</h3>
+  <dl class="message-properties">
+    <dt class="optional">oec <span class="property-type">object</span></dt>
+    <dd>Overrides the settings: <code>{serviceType, appIl, resource, sourceIl, filter, perPage, page, timeout}</code>.</dd>
+  </dl>
+  <h3>Output</h3>
+  <dl class="message-properties">
+    <dt>payload <span class="property-type">array</span></dt>
+    <dd>The DataSetMessages of the answer (for <code>Metadata</code> the ua-metadata message).</dd>
+    <dt>oec <span class="property-type">object</span></dt>
+    <dd>The answer (<code>messageId, publisherId, …</code>), the <code>request</code>, its <code>requestId</code> and
+      the <code>pagination</code> of the last page.</dd>
+  </dl>
+  <p>A Status <code>Bad</code> event as answer or no answer within the timeout is an error (catch node).
+    <code>Get Metadata</code> needs Source and Filter (the Tag).</p>
+</script>

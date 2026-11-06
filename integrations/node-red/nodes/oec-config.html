@@ -1,0 +1,87 @@
+<script type="text/javascript">
+  RED.nodes.registerType('oec-config', {
+    category: 'OEC',
+    color: '#8FB8DE',
+    defaults: {
+      name: { value: '' },
+      app: { type: 'oec-app', required: true },
+      asset: { type: 'oec-asset', required: false },
+      contextName: { value: '', required: true, validate: RED.validators.regex(/^[A-Za-z0-9_-]{1,128}$/) },
+      description: { value: '' },
+      definition: { value: '{\n  "Settings": {\n    "Interval": { "Value": "60", "Type": "Number", "Unit": "SEC", "Description": "Publication interval" }\n  }\n}', required: true,
+        validate: function (v) { try { JSON.parse(v); return true; } catch (e) { return false; } } },
+    },
+    inputs: 1,
+    outputs: 1,
+    icon: 'font-awesome/fa-sliders',
+    paletteLabel: 'config',
+    outputLabels: ['values'],
+    label: function () { return this.name || (this.contextName ? 'Config ' + this.contextName : 'OEC Config'); },
+    oneditprepare: function () {
+      this.editor = RED.editor.createEditor({ id: 'node-input-definition-editor', mode: 'ace/mode/json', value: $('#node-input-definition').val() });
+    },
+    oneditsave: function () {
+      $('#node-input-definition').val(this.editor.getValue());
+      this.editor.destroy();
+      delete this.editor;
+    },
+    oneditcancel: function () {
+      this.editor.destroy();
+      delete this.editor;
+    },
+  });
+</script>
+
+<script type="text/html" data-template-name="oec-config">
+  <div class="form-row">
+    <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+    <input type="text" id="node-input-name" placeholder="Name">
+  </div>
+  <div class="form-row">
+    <label for="node-input-app"><i class="fa fa-cube"></i> Application</label>
+    <input type="text" id="node-input-app">
+  </div>
+  <div class="form-row">
+    <label for="node-input-asset"><i class="fa fa-microchip"></i> Asset</label>
+    <input type="text" id="node-input-asset">
+  </div>
+  <div class="form-row">
+    <label for="node-input-contextName"><i class="fa fa-bookmark"></i> Context</label>
+    <input type="text" id="node-input-contextName" placeholder="Settings">
+  </div>
+  <div class="form-row">
+    <label for="node-input-description"><i class="fa fa-info"></i> Description</label>
+    <input type="text" id="node-input-description">
+  </div>
+  <div class="form-row node-text-editor-row">
+    <label style="width:100%"><i class="fa fa-list"></i> Definition (JSON)</label>
+    <input type="hidden" id="node-input-definition">
+    <div style="height:220px;min-height:150px" class="node-text-editor" id="node-input-definition-editor"></div>
+  </div>
+</script>
+
+<script type="text/html" data-help-name="oec-config">
+  <p>A <code>Config</code> DataSet (OEC Messaging Guideline 9.1.3) with the context name <i>Context</i>. The
+    application publishes it, answers <code>Get Config</code> and accepts <code>Set Config</code>.</p>
+  <p><i>Application</i> is the <code>oec-app</code>; with an <i>Asset</i> (<code>oec-asset</code>) the node acts for that asset as <code>Source</code>, otherwise for the application itself.</p>
+  <h3>Definition</h3>
+  <p>Groups of config elements: <code>{"&lt;Group&gt;": {"&lt;Name&gt;": {Value, Type, DefaultValue?, Unit?,
+    Name?, Description?, Validation?: {Length, Min, Max, Pattern, Values}, Mandatory?, Sensitive?}}}</code>. <code>Type</code> is <code>Boolean</code>, <code>ByteString</code>,
+    <code>DateTime</code>, <code>Number</code> or <code>String</code>; <code>Value</code> is a string. Sensitive
+    values are masked in every publication.</p>
+  <h3>Input</h3>
+  <dl class="message-properties">
+    <dt>payload <span class="property-type">object</span></dt>
+    <dd><code>{group: {name: value}}</code> changes values and publishes the Config. Any other payload only sends the
+      current values to the output.</dd>
+  </dl>
+  <h3>Output</h3>
+  <dl class="message-properties">
+    <dt>payload <span class="property-type">object</span></dt>
+    <dd>All values <code>{group: {name: value}}</code> as Boolean, Number or String.</dd>
+    <dt>oec <span class="property-type">object</span></dt>
+    <dd><code>{reason, source, context}</code>; reason <code>init</code> (deploy), <code>set</code>
+      (<code>Set Config</code>, with <code>messageId</code>), <code>input</code> or <code>get</code>.</dd>
+  </dl>
+  <p>The values are kept in the node context; with a persistent context store they survive a restart.</p>
+</script>
