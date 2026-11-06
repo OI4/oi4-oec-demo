@@ -1,0 +1,4 @@
+# The ESP-IDF component of the OEC Micro SDK, from the OEC source tree.
+dependencies:
+  oecm:
+    path: ../../../sdk/micro/port/esp-idf/oecm

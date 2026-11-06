@@ -13,18 +13,36 @@ Guide: [Demo services](https://oi4.github.io/oi4-oec-documentation/docs/communit
 in the Community section of the OEC guideline site. Details, images and
 tests: [`demos/README.md`](demos/README.md).
 
+## Smart sensor demos
+
+Real microcontroller boards as OEC smart devices on the OEC Micro SDK. They
+join the demo services on the broker of the local development environment:
+the OEC Registry lists them, the config service changes their `Config`, the
+logger records them.
+
+| Demo | Board, sensor | Platform | ServiceType | Messaging level |
+|---|---|---|---|---|
+| [`demos-smart-sensors/esp32-dht22/`](demos-smart-sensors/esp32-dht22/README.md) | ESP32 or ESP32-S3, DHT22 (AM2302) | ESP-IDF 6.1, C17 | `OTConnector` | L3 |
+
+Guide: [Smart sensor on an ESP32](https://oi4.github.io/oi4-oec-documentation/docs/community/demos/smart-sensor).
+Overview: [`demos-smart-sensors/README.md`](demos-smart-sensors/README.md).
+
 ## Where the demos come from
 
-The demos are developed in the OEC source tree, in the folder `oec/demos`,
-together with the SDKs and the compliance tools D7/D8 that build and check
-them. This repository holds an **unmodified copy of that folder** as
-`demos/`: it is laid out like the OEC source tree, but contains only its
-demos. Paths in the copied files that leave `demos/` (`../sdk/…`,
+The demos are developed in the OEC source tree, in the folders `oec/demos`
+and `oec/demos-smart-sensors`, together with the SDKs and the compliance
+tools D7/D8 that build and check them. This repository holds an
+**unmodified copy of these folders** as `demos/` and `demos-smart-sensors/`:
+it is laid out like the OEC source tree, but contains only its demos. Paths
+in the copied files that leave these folders (`../sdk/…`,
 `../conformance/…`, `../spec/…`, `../dev/…`, `../ci/…`, the image build
-context `oec/` with its `.dockerignore`) refer to the OEC source tree.
+context `oec/` with its `.dockerignore`; for the smart sensors the Micro SDK
+component `../../../sdk/micro/port/esp-idf/oecm` and `../../dev`) refer to
+the OEC source tree.
 
-Changes are made in `oec/demos` of the OEC source tree and copied here; do
-not edit `demos/` in this repository.
+Changes are made in `oec/demos` and `oec/demos-smart-sensors` of the OEC
+source tree and copied here; do not edit `demos/` or
+`demos-smart-sensors/` in this repository.
 
 ## Build and run
 
@@ -35,6 +53,9 @@ Build and test them there:
 ```sh
 oec/demos/check.sh   # builds the SDK parts, the three demos and runs their tests with D7
 ```
+
+The smart sensor firmware is built and flashed with ESP-IDF in the OEC
+source tree, see [`demos-smart-sensors/esp32-dht22/README.md`](demos-smart-sensors/esp32-dht22/README.md).
 
 How to start a single demo against a broker, the container images
 (`oi4/oec-logger`, `oi4/oec-weather`, `oi4/oec-config`) and the compose

@@ -1,0 +1,18 @@
+menu "OEC smart sensor demo (DHT22)"
+
+    config DEMO_DHT22_GPIO
+        int "GPIO of the DHT22 data line"
+        range 0 48
+        default 4 if IDF_TARGET_ESP32S3
+        default 23
+
+    config DEMO_LEVEL
+        int "Messaging level (the provisioning key level overrides it)"
+        range 1 3
+        default 3
+
+    config DEMO_CONSOLE
+        bool "Serial console commands stop and time"
+        default y
+
+endmenu

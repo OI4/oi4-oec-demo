@@ -4,6 +4,10 @@ dist/
 build/
 node_modules/
 *.log
+# ESP-IDF: fetched components, sdkconfig of a build in place
+managed_components/
+sdkconfig
+sdkconfig.old
 
 # Secrets, keys and generated storages are never committed
 *.key
