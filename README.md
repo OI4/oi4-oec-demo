@@ -37,11 +37,14 @@ Assistant devices: their Health, whether an application is online, and the
 values of their `Data` (e.g. the weather stations and the ESP32 smart
 sensor).
 
-Install with [HACS](https://hacs.xyz/): *HACS → ⋮ → Custom repositories*,
-repository `https://github.com/OI4/oi4-oec-demo`, type *Integration*; then
-download *OI4 Open Edge Computing*, restart Home Assistant and add the
-integration *OI4 Open Edge Computing* with the broker address, the credentials and the CA
-certificate of the OEC platform. Home Assistant 2026.10 or later.
+Install it in Home Assistant 2026.11 or later with the
+[Marketplace](https://www.home-assistant.io/integrations/marketplace):
+*Settings → Marketplace → Add from link*, `https://github.com/OI4/oi4-oec-demo`,
+type *Integration*; then install *OI4 Open Edge Computing* and add the
+integration with the broker address, the credentials and the CA
+certificate of the OEC platform. Home Assistant 2026.10 installs it with
+[HACS](https://hacs.xyz/) as a custom repository. Both install the latest
+GitHub release of this repository.
 
 Documentation, entities, behaviour on the bus and tests:
 [`integrations/home-assistant/README.md`](integrations/home-assistant/README.md).

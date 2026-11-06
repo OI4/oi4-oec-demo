@@ -2,7 +2,10 @@
 
 A custom integration for [Home Assistant](https://www.home-assistant.io/)
 that joins an OEC 2.0 message bus and shows its applications and assets
-with their Health and Data. It is installed with [HACS](https://hacs.xyz/).
+with their Health and Data. It is installed with the Home Assistant
+[Marketplace](https://www.home-assistant.io/integrations/marketplace)
+(Home Assistant 2026.11 and newer) or with [HACS](https://hacs.xyz/)
+(before 2026.11).
 
 | | |
 |---|---|
@@ -12,17 +15,28 @@ with their Health and Data. It is installed with [HACS](https://hacs.xyz/).
 | Connection | MQTT 5 over TLS to the OEC broker (own client, [aiomqtt](https://github.com/empicano/aiomqtt)); independent of the Home Assistant MQTT integration |
 | Data flow | read only, push (`local_push`) |
 
-## Install with HACS
+## Install
 
-1. HACS → ⋮ → *Custom repositories* → repository
-   `https://github.com/OI4/oi4-oec-demo`, type *Integration*.
-2. Install *OI4 Open Edge Computing*, restart Home Assistant.
+Home Assistant 2026.11 and newer, with the Marketplace (it replaced HACS):
+
+1. *Settings → Marketplace → Add from link*, GitHub link
+   `https://github.com/OI4/oi4-oec-demo`, type *Integration* (the
+   Marketplace asks to connect a GitHub account first: device code on
+   `github.com/login/device`, read access to public data only).
+2. Open *OI4 Open Edge Computing* in the list and *Install*.
 3. *Settings → Devices & services → Add integration →
-   OI4 Open Edge Computing*.
+   OI4 Open Edge Computing* (no restart needed).
 
-HACS installs `custom_components/oi4_oec/` of the repository root.
-Without HACS, copy that folder into `<config>/custom_components/` and
-restart.
+Home Assistant 2026.10 with HACS: HACS → ⋮ → *Custom repositories* →
+repository `https://github.com/OI4/oi4-oec-demo`, type *Integration*;
+install *OI4 Open Edge Computing*, restart Home Assistant, add the
+integration.
+
+Both install `custom_components/oi4_oec/` of the repository root of the
+**latest GitHub release** (the first release that is not marked as
+pre-release, in the order of the GitHub API, which orders by the version
+in the tag name). Without Marketplace or HACS, copy that folder into
+`<config>/custom_components/` and restart.
 
 ## Configuration
 
@@ -50,7 +64,9 @@ are reported in the form. One entry per broker (`host:port`).
 
 - A service device for the integration itself (the entry), with the
   diagnostic binary sensor *Bus connection*.
-- A device per OEC application on the bus (from its first message) and per
+- A device per OEC application on the bus (from its first message; OEC has
+  no bus-wide request, so an application appears with its next
+  publication, at the latest with its Health heartbeat after 60 s) and per
   asset it represents (from its `MAM`, linked *via* its application).
   Name, manufacturer, model, product code, serial number and revisions come
   from the `MAM`; until it arrives the name comes from the Oi4Identifier.
