@@ -4,6 +4,9 @@ dist/
 build/
 node_modules/
 *.log
+# Python
+__pycache__/
+*.pyc
 # ESP-IDF: fetched components, sdkconfig of a build in place
 managed_components/
 sdkconfig

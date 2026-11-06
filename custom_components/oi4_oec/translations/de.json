@@ -1,0 +1,82 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Mit einem OEC-Broker verbinden",
+        "description": "Der Message Bus eines OI4 Open Edge Computing 2.0 Knotens (MQTT 3.1.1 über TLS). Home Assistant tritt dem Bus als OEC-Anwendung bei.",
+        "data": {
+          "host": "Host",
+          "port": "Port",
+          "ca_cert": "CA-Zertifikat (PEM)",
+          "auth": "Authentifizierung"
+        },
+        "data_description": {
+          "host": "DNS-Name oder IP-Adresse des Brokers wie im Zertifikat (broker.json Address).",
+          "port": "Sicherer Port des Brokers (broker.json SecurePort).",
+          "ca_cert": "Zertifikat der CA, die das Broker-Zertifikat signiert hat. Leer lassen, um die System-Zertifikate zu verwenden.",
+          "auth": "Wie sich Home Assistant am Broker anmeldet."
+        }
+      },
+      "password": {
+        "title": "Benutzername und Passwort",
+        "data": {
+          "username": "Benutzername",
+          "password": "Passwort"
+        }
+      },
+      "certificate": {
+        "title": "Client-Zertifikat",
+        "data": {
+          "client_cert": "Client-Zertifikat (PEM)",
+          "client_key": "Privater Schlüssel (PEM)",
+          "key_password": "Passphrase des Schlüssels"
+        },
+        "data_description": {
+          "key_password": "Nur wenn der private Schlüssel verschlüsselt ist."
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Verbindung fehlgeschlagen",
+      "invalid_auth": "Ungültige Anmeldedaten",
+      "tls_error": "Die TLS-Verbindung ist fehlgeschlagen: CA-Zertifikat prüfen und ob der Host zum Broker-Zertifikat passt.",
+      "invalid_tls": "CA-Zertifikat, Client-Zertifikat oder privater Schlüssel ist ungültig."
+    },
+    "abort": {
+      "already_configured": "Gerät ist bereits konfiguriert"
+    }
+  },
+  "selector": {
+    "auth": {
+      "options": {
+        "password": "Benutzername und Passwort",
+        "certificate": "Client-Zertifikat"
+      }
+    }
+  },
+  "entity": {
+    "binary_sensor": {
+      "bus": {
+        "name": "Bus-Verbindung"
+      },
+      "online": {
+        "name": "Online"
+      }
+    },
+    "sensor": {
+      "health": {
+        "name": "Health",
+        "state": {
+          "normal": "Normal",
+          "failure": "Ausfall",
+          "check_function": "Funktionskontrolle",
+          "off_spec": "Außerhalb der Spezifikation",
+          "maintenance_required": "Wartungsbedarf"
+        }
+      },
+      "health_score": {
+        "name": "Health-Score"
+      }
+    }
+  }
+}

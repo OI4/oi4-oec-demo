@@ -27,10 +27,29 @@ logger records them.
 Guide: [Smart sensor on an ESP32](https://oi4.github.io/oi4-oec-documentation/docs/community/demos/smart-sensor).
 Overview: [`demos-smart-sensors/README.md`](demos-smart-sensors/README.md).
 
+## Home Assistant integration (HACS)
+
+[`custom_components/oi4_oec/`](custom_components/oi4_oec/) is a
+[Home Assistant](https://www.home-assistant.io/) integration for OEC 2.0. It
+joins the OEC message bus as an OEC application itself (`ITConnector`,
+Messaging Level 2) and shows the applications and assets on the bus as Home
+Assistant devices: their Health, whether an application is online, and the
+values of their `Data` (e.g. the weather stations and the ESP32 smart
+sensor).
+
+Install with [HACS](https://hacs.xyz/): *HACS → ⋮ → Custom repositories*,
+repository `https://github.com/OI4/oi4-oec-demo`, type *Integration*; then
+download *OI4 Open Edge Computing*, restart Home Assistant and add the
+integration *OI4 Open Edge Computing* with the broker address, the credentials and the CA
+certificate of the OEC platform. Home Assistant 2026.10 or later.
+
+Documentation, entities, behaviour on the bus and tests:
+[`integrations/home-assistant/README.md`](integrations/home-assistant/README.md).
+
 ## Where the demos come from
 
-The demos are developed in the OEC source tree, in the folders `oec/demos`
-and `oec/demos-smart-sensors`, together with the SDKs and the compliance
+The demos are developed in the OEC source tree, in the folders `oec/demos`,
+`oec/demos-smart-sensors` and `oec/integrations`, together with the SDKs and the compliance
 tools D7/D8 that build and check them. This repository holds an
 **unmodified copy of these folders** as `demos/` and `demos-smart-sensors/`:
 it is laid out like the OEC source tree, but contains only its demos. Paths
@@ -40,9 +59,15 @@ context `oec/` with its `.dockerignore`; for the smart sensors the Micro SDK
 component `../../../sdk/micro/port/esp-idf/oecm` and `../../dev`) refer to
 the OEC source tree.
 
-Changes are made in `oec/demos` and `oec/demos-smart-sensors` of the OEC
-source tree and copied here; do not edit `demos/` or
-`demos-smart-sensors/` in this repository.
+The Home Assistant integration comes from
+`oec/integrations/home-assistant`: HACS needs `custom_components/oi4_oec/`
+and `hacs.json` at the root of the repository, all other files of the
+folder (README, tests, checks) are in `integrations/home-assistant/`.
+
+Changes are made in `oec/demos`, `oec/demos-smart-sensors` and
+`oec/integrations` of the OEC source tree and copied here; do not edit
+`demos/`, `demos-smart-sensors/`, `custom_components/`, `hacs.json` or
+`integrations/` in this repository.
 
 ## Build and run
 

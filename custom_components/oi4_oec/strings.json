@@ -1,0 +1,82 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Connect to an OEC broker",
+        "description": "The Message Bus of an OI4 Open Edge Computing 2.0 node (MQTT 3.1.1 over TLS). Home Assistant joins the bus as an OEC application.",
+        "data": {
+          "host": "[%key:common::config_flow::data::host%]",
+          "port": "[%key:common::config_flow::data::port%]",
+          "ca_cert": "CA certificate (PEM)",
+          "auth": "Authentication"
+        },
+        "data_description": {
+          "host": "DNS name or IP address of the broker as in its certificate (broker.json Address).",
+          "port": "Secure port of the broker (broker.json SecurePort).",
+          "ca_cert": "Certificate of the CA that signed the broker certificate. Leave empty to use the system trust store.",
+          "auth": "How Home Assistant authenticates to the broker."
+        }
+      },
+      "password": {
+        "title": "Username and password",
+        "data": {
+          "username": "[%key:common::config_flow::data::username%]",
+          "password": "[%key:common::config_flow::data::password%]"
+        }
+      },
+      "certificate": {
+        "title": "Client certificate",
+        "data": {
+          "client_cert": "Client certificate (PEM)",
+          "client_key": "Private key (PEM)",
+          "key_password": "Key passphrase"
+        },
+        "data_description": {
+          "key_password": "Only if the private key is encrypted."
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "[%key:common::config_flow::error::cannot_connect%]",
+      "invalid_auth": "[%key:common::config_flow::error::invalid_auth%]",
+      "tls_error": "The TLS connection failed: check the CA certificate and that the host matches the broker certificate.",
+      "invalid_tls": "The CA certificate, client certificate or private key is invalid."
+    },
+    "abort": {
+      "already_configured": "[%key:common::config_flow::abort::already_configured_device%]"
+    }
+  },
+  "selector": {
+    "auth": {
+      "options": {
+        "password": "Username and password",
+        "certificate": "Client certificate"
+      }
+    }
+  },
+  "entity": {
+    "binary_sensor": {
+      "bus": {
+        "name": "Bus connection"
+      },
+      "online": {
+        "name": "Online"
+      }
+    },
+    "sensor": {
+      "health": {
+        "name": "Health",
+        "state": {
+          "normal": "Normal",
+          "failure": "Failure",
+          "check_function": "Check function",
+          "off_spec": "Off specification",
+          "maintenance_required": "Maintenance required"
+        }
+      },
+      "health_score": {
+        "name": "Health score"
+      }
+    }
+  }
+}
