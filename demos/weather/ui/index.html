@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OEC Weather</title>
+<link rel="stylesheet" href="/app.css">
+<script src="/app.js" defer></script>
+</head>
+<body>
+<header>
+  <h1>OEC Weather</h1>
+  <span id="health" class="pill">…</span>
+  <span id="state" class="pill">…</span>
+  <span id="live" class="pill off">connecting</span>
+</header>
+<main>
+  <section id="attribution" class="panel wide attribution" hidden></section>
+  <section class="panel" id="service">
+    <h2>Service</h2>
+    <p class="hint">Read only here: the settings are the OEC Config of the service (context
+      <code>weather</code>) and of each station (context <code>station</code>); change them with a
+      Set Config, for example in the config service demo.</p>
+    <dl id="service-list"></dl>
+  </section>
+  <section class="panel" id="stations-panel">
+    <h2>Stations <small id="count"></small></h2>
+    <div id="stations"></div>
+  </section>
+</main>
+<footer>OEC v2.0 demo &middot; weather service &middot; <span id="version"></span>
+  <span id="credit"></span></footer>
+</body>
+</html>

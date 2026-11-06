@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OEC Logger</title>
+<link rel="stylesheet" href="/app.css">
+<script src="/app.js" defer></script>
+</head>
+<body>
+<header>
+  <h1>OEC Logger</h1>
+  <span id="state" class="pill">…</span>
+  <span id="live" class="pill off">connecting</span>
+</header>
+<main>
+  <section class="panel" id="settings">
+    <h2>Settings</h2>
+    <p class="hint">Read only here: the settings are the OEC Config of the logger (context
+      <code>logger</code>, group <code>common</code>); change them with a Set Config, for
+      example in the config service demo.</p>
+    <dl id="settings-list"></dl>
+  </section>
+  <section class="panel" id="series-panel">
+    <h2>Values</h2>
+    <p class="hint">The numbers of logged Data and the HealthScore of logged Health, per
+      AppId, Source, Filter and field.</p>
+    <div id="series"></div>
+  </section>
+  <section class="panel wide">
+    <h2>Records <small id="count"></small></h2>
+    <form id="filter" class="filter">
+      <label>Resource
+        <select name="resource">
+          <option value="">any</option>
+          <option>Event</option>
+          <option>Health</option>
+          <option>Data</option>
+        </select>
+      </label>
+      <label>Event level at least
+        <select name="level">
+          <option value="">any record</option>
+          <option>Emergency</option>
+          <option>Alert</option>
+          <option>Critical</option>
+          <option>Error</option>
+          <option>Warning</option>
+          <option>Notice</option>
+          <option>Informational</option>
+          <option>Debug</option>
+        </select>
+      </label>
+      <label>Text <input name="q" type="search" maxlength="256" placeholder="part of the record"></label>
+      <label>Show <select name="limit">
+          <option>50</option>
+          <option selected>200</option>
+          <option>1000</option>
+        </select>
+      </label>
+      <label class="check"><input name="pause" type="checkbox"> pause</label>
+    </form>
+    <table>
+      <thead>
+        <tr><th>#</th><th>Time</th><th>Resource</th><th>Level</th><th>AppId</th><th>Source</th><th>Filter</th><th>Payload</th></tr>
+      </thead>
+      <tbody id="records"></tbody>
+    </table>
+  </section>
+</main>
+<footer>OEC v2.0 demo &middot; logger &middot; <span id="version"></span></footer>
+</body>
+</html>

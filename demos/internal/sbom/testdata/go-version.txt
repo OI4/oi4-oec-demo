@@ -1,0 +1,9 @@
+target/oec-weather: go1.27.3
+	path	github.com/OI4/oec/demos/weather
+	mod	github.com/OI4/oec/demos	(devel)	
+	dep	github.com/OI4/oec/sdk/go	v0.0.0
+	=>	../sdk/go	(devel)	
+	build	-buildmode=exe
+	build	CGO_ENABLED=1
+	build	GOARCH=arm64
+	build	GOOS=linux

@@ -1,5 +1,0 @@
-/testdata/
-/Dockerfile
-/.dockerignore
-docker_configs.zip
-test-report.json

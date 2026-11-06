@@ -1,0 +1,322 @@
+{
+  "spdxVersion": "SPDX-2.3",
+  "dataLicense": "CC0-1.0",
+  "SPDXID": "SPDXRef-DOCUMENT",
+  "name": "oec-demo-0.1.0",
+  "documentNamespace": "https://github.com/OI4/oec/spdx/oec-demo-0.1.0-04c91a21139518a2",
+  "creationInfo": {
+    "created": "2026-11-01T12:00:00Z",
+    "creators": [
+      "Tool: oec-sbom",
+      "Organization: OI4 Alliance"
+    ]
+  },
+  "packages": [
+    {
+      "SPDXID": "SPDXRef-Package-oec-demo-0.1.0",
+      "name": "oec-demo",
+      "versionInfo": "0.1.0",
+      "downloadLocation": "NOASSERTION",
+      "filesAnalyzed": false,
+      "licenseConcluded": "MIT",
+      "licenseDeclared": "MIT",
+      "copyrightText": "NOASSERTION",
+      "primaryPackagePurpose": "APPLICATION",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:generic/oi4/oec-demo@0.1.0"
+        }
+      ]
+    },
+    {
+      "SPDXID": "SPDXRef-Package-aws-lc-rs-1.18.2",
+      "name": "aws-lc-rs",
+      "versionInfo": "1.18.2",
+      "downloadLocation": "NOASSERTION",
+      "filesAnalyzed": false,
+      "licenseConcluded": "ISC AND (Apache-2.0 OR ISC)",
+      "licenseDeclared": "ISC AND (Apache-2.0 OR ISC)",
+      "copyrightText": "NOASSERTION",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:cargo/aws-lc-rs@1.18.2"
+        }
+      ]
+    },
+    {
+      "SPDXID": "SPDXRef-Package-memchr-2.8.3",
+      "name": "memchr",
+      "versionInfo": "2.8.3",
+      "downloadLocation": "NOASSERTION",
+      "filesAnalyzed": false,
+      "licenseConcluded": "Unlicense OR MIT",
+      "licenseDeclared": "Unlicense OR MIT",
+      "copyrightText": "NOASSERTION",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:cargo/memchr@2.8.3"
+        }
+      ]
+    },
+    {
+      "SPDXID": "SPDXRef-Package-oec-0.1.0",
+      "name": "oec",
+      "versionInfo": "0.1.0",
+      "downloadLocation": "NOASSERTION",
+      "filesAnalyzed": false,
+      "licenseConcluded": "MIT",
+      "licenseDeclared": "MIT",
+      "copyrightText": "NOASSERTION",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:generic/oi4/oec@0.1.0"
+        }
+      ]
+    },
+    {
+      "SPDXID": "SPDXRef-Package-oec-ffi-0.1.0",
+      "name": "oec-ffi",
+      "versionInfo": "0.1.0",
+      "downloadLocation": "NOASSERTION",
+      "filesAnalyzed": false,
+      "licenseConcluded": "MIT",
+      "licenseDeclared": "MIT",
+      "copyrightText": "NOASSERTION",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:generic/oi4/oec-ffi@0.1.0"
+        }
+      ]
+    },
+    {
+      "SPDXID": "SPDXRef-Package-serde-1.0.229",
+      "name": "serde",
+      "versionInfo": "1.0.229",
+      "downloadLocation": "NOASSERTION",
+      "filesAnalyzed": false,
+      "licenseConcluded": "MIT OR Apache-2.0",
+      "licenseDeclared": "MIT OR Apache-2.0",
+      "copyrightText": "NOASSERTION",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:cargo/serde@1.0.229"
+        }
+      ]
+    },
+    {
+      "SPDXID": "SPDXRef-Package-subtle-2.6.1",
+      "name": "subtle",
+      "versionInfo": "2.6.1",
+      "downloadLocation": "NOASSERTION",
+      "filesAnalyzed": false,
+      "licenseConcluded": "BSD-3-Clause",
+      "licenseDeclared": "BSD-3-Clause",
+      "copyrightText": "NOASSERTION",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:cargo/subtle@2.6.1"
+        }
+      ]
+    },
+    {
+      "SPDXID": "SPDXRef-Package-github.com-OI4-oec-sdk-go-v0.0.0",
+      "name": "github.com/OI4/oec/sdk/go",
+      "versionInfo": "v0.0.0",
+      "downloadLocation": "NOASSERTION",
+      "filesAnalyzed": false,
+      "licenseConcluded": "MIT",
+      "licenseDeclared": "MIT",
+      "copyrightText": "NOASSERTION",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:golang/github.com/OI4/oec/sdk/go@v0.0.0"
+        }
+      ]
+    },
+    {
+      "SPDXID": "SPDXRef-Package-stdlib-go1.27.3",
+      "name": "stdlib",
+      "versionInfo": "go1.27.3",
+      "downloadLocation": "NOASSERTION",
+      "filesAnalyzed": false,
+      "licenseConcluded": "BSD-3-Clause",
+      "licenseDeclared": "BSD-3-Clause",
+      "copyrightText": "NOASSERTION",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:golang/stdlib@1.27.3"
+        }
+      ]
+    },
+    {
+      "SPDXID": "SPDXRef-Package-rust-std-1.89.0",
+      "name": "rust-std",
+      "versionInfo": "1.89.0",
+      "downloadLocation": "NOASSERTION",
+      "filesAnalyzed": false,
+      "licenseConcluded": "MIT OR Apache-2.0",
+      "licenseDeclared": "MIT OR Apache-2.0",
+      "copyrightText": "NOASSERTION",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:generic/rust-lang/rust-std@1.89.0"
+        }
+      ]
+    },
+    {
+      "SPDXID": "SPDXRef-Package-libc6-2.41-12plusdeb13u4",
+      "name": "libc6",
+      "versionInfo": "2.41-12+deb13u4",
+      "downloadLocation": "NOASSERTION",
+      "filesAnalyzed": false,
+      "licenseConcluded": "LGPL-2.1-or-later AND (BSD-2-Clause OR GPL-2.0-only) AND LicenseRef-libc6-public-domain AND LicenseRef-libc6-Univ-Coimbra",
+      "licenseDeclared": "LGPL-2.1-or-later AND (BSD-2-Clause OR GPL-2.0-only) AND LicenseRef-libc6-public-domain AND LicenseRef-libc6-Univ-Coimbra",
+      "copyrightText": "NOASSERTION",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:deb/debian/libc6@2.41-12%2Bdeb13u4?arch=arm64&distro=debian-13"
+        }
+      ]
+    },
+    {
+      "SPDXID": "SPDXRef-Package-libgcc-s1-14.2.0-19",
+      "name": "libgcc-s1",
+      "versionInfo": "14.2.0-19",
+      "downloadLocation": "NOASSERTION",
+      "filesAnalyzed": false,
+      "licenseConcluded": "GPL-3.0-or-later WITH GCC-exception-3.1",
+      "licenseDeclared": "GPL-3.0-or-later WITH GCC-exception-3.1",
+      "copyrightText": "NOASSERTION",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:deb/debian/libgcc-s1@14.2.0-19?arch=arm64&distro=debian-13"
+        }
+      ]
+    },
+    {
+      "SPDXID": "SPDXRef-Package-tzdata-1-2026f-0plusdeb13u1",
+      "name": "tzdata",
+      "versionInfo": "1:2026f-0+deb13u1",
+      "downloadLocation": "NOASSERTION",
+      "filesAnalyzed": false,
+      "licenseConcluded": "LicenseRef-tzdata-public-domain",
+      "licenseDeclared": "LicenseRef-tzdata-public-domain",
+      "copyrightText": "NOASSERTION",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:deb/debian/tzdata@1%3A2026f-0%2Bdeb13u1?arch=all&distro=debian-13"
+        }
+      ]
+    }
+  ],
+  "hasExtractedLicensingInfos": [
+    {
+      "licenseId": "LicenseRef-libc6-Univ-Coimbra",
+      "name": "libc6-Univ-Coimbra",
+      "extractedText": "Permission to use, copy, modify and distribute this software is granted\nby the University of Coimbra.\n\nTHIS SOFTWARE IS PROVIDED \"AS IS\".\n"
+    },
+    {
+      "licenseId": "LicenseRef-libc6-public-domain",
+      "name": "libc6-public-domain",
+      "extractedText": "This file is in the public domain.\n\nWritten by a hacker, placed in the public domain.\n"
+    },
+    {
+      "licenseId": "LicenseRef-tzdata-public-domain",
+      "name": "tzdata-public-domain",
+      "extractedText": "This database is in the public domain.\n"
+    }
+  ],
+  "relationships": [
+    {
+      "spdxElementId": "SPDXRef-DOCUMENT",
+      "relationshipType": "DESCRIBES",
+      "relatedSpdxElement": "SPDXRef-Package-oec-demo-0.1.0"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-oec-demo-0.1.0",
+      "relationshipType": "DEPENDS_ON",
+      "relatedSpdxElement": "SPDXRef-Package-aws-lc-rs-1.18.2"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-oec-demo-0.1.0",
+      "relationshipType": "DEPENDS_ON",
+      "relatedSpdxElement": "SPDXRef-Package-memchr-2.8.3"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-oec-demo-0.1.0",
+      "relationshipType": "DEPENDS_ON",
+      "relatedSpdxElement": "SPDXRef-Package-oec-0.1.0"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-oec-demo-0.1.0",
+      "relationshipType": "DEPENDS_ON",
+      "relatedSpdxElement": "SPDXRef-Package-oec-ffi-0.1.0"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-oec-demo-0.1.0",
+      "relationshipType": "DEPENDS_ON",
+      "relatedSpdxElement": "SPDXRef-Package-serde-1.0.229"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-oec-demo-0.1.0",
+      "relationshipType": "DEPENDS_ON",
+      "relatedSpdxElement": "SPDXRef-Package-subtle-2.6.1"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-oec-demo-0.1.0",
+      "relationshipType": "DEPENDS_ON",
+      "relatedSpdxElement": "SPDXRef-Package-github.com-OI4-oec-sdk-go-v0.0.0"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-oec-demo-0.1.0",
+      "relationshipType": "DEPENDS_ON",
+      "relatedSpdxElement": "SPDXRef-Package-stdlib-go1.27.3"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-oec-demo-0.1.0",
+      "relationshipType": "DEPENDS_ON",
+      "relatedSpdxElement": "SPDXRef-Package-rust-std-1.89.0"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-oec-demo-0.1.0",
+      "relationshipType": "DEPENDS_ON",
+      "relatedSpdxElement": "SPDXRef-Package-libc6-2.41-12plusdeb13u4"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-oec-demo-0.1.0",
+      "relationshipType": "DEPENDS_ON",
+      "relatedSpdxElement": "SPDXRef-Package-libgcc-s1-14.2.0-19"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-oec-demo-0.1.0",
+      "relationshipType": "DEPENDS_ON",
+      "relatedSpdxElement": "SPDXRef-Package-tzdata-1-2026f-0plusdeb13u1"
+    }
+  ]
+}

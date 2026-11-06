@@ -1,0 +1,79 @@
+:root {
+  --bg: #f6f7f9;
+  --fg: #1d2330;
+  --muted: #5d6677;
+  --panel: #fff;
+  --line: #d9dde4;
+  --accent: #1f6feb;
+  --good: #1a7f37;
+  --warn: #9a6700;
+  --bad: #cf222e;
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-size: 14px;
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--fg); }
+header { display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1.25rem; background: var(--fg); color: #fff; }
+header h1 { font-size: 1.2rem; margin: 0 auto 0 0; }
+main { display: grid; grid-template-columns: minmax(16rem, 1fr) 3fr; gap: 1rem; padding: 1rem 1.25rem; align-items: start; }
+footer { padding: 0.5rem 1.25rem 1.5rem; color: var(--muted); font-size: 0.85rem; }
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 0.75rem 1rem; min-width: 0; }
+.panel.wide { grid-column: 1 / -1; }
+h2 { font-size: 1rem; margin: 0 0 0.5rem; }
+h2 small, h3 small { color: var(--muted); font-weight: normal; }
+h3 { font-size: 0.95rem; margin: 0; }
+.hint { color: var(--muted); margin: 0 0 0.75rem; }
+.empty { color: var(--muted); font-style: italic; }
+code, .mono { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 0.9em; }
+
+.pill { border-radius: 999px; padding: 0.15rem 0.6rem; font-size: 0.8rem; background: #6e7781; color: #fff; white-space: nowrap; }
+.pill.online, .pill.on, .pill.writable, .pill.good, .pill.NORMAL_0 { background: var(--good); }
+.pill.connecting, .pill.off, .pill.offlineGraceful, .pill.OFF_SPEC_3, .pill.MAINTENANCE_REQUIRED_4,
+.pill.CHECK_FUNCTION_2 { background: var(--warn); }
+.pill.offline, .pill.offlineUngraceful, .pill.bad, .pill.FAILURE_1 { background: var(--bad); }
+
+button { font: inherit; padding: 0.25rem 0.7rem; border: 1px solid var(--line); border-radius: 4px; background: #fff; cursor: pointer; }
+button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+button:disabled { opacity: 0.5; cursor: default; }
+
+#apps { list-style: none; margin: 0.75rem 0 0; padding: 0; }
+#apps li { margin: 0 0 0.4rem; }
+#apps button { width: 100%; text-align: left; display: grid; gap: 0.2rem; }
+#apps button.chosen { border-color: var(--accent); background: #eef4ff; }
+#apps .name { font-weight: 600; }
+#apps .il { color: var(--muted); font-size: 0.75rem; overflow-wrap: anywhere; }
+#apps .pills { display: flex; gap: 0.3rem; flex-wrap: wrap; }
+
+.title { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem; margin: 0 0 0.5rem; }
+.title h2 { margin: 0 auto 0 0; }
+dl { display: grid; grid-template-columns: max-content 1fr; gap: 0.25rem 1rem; margin: 0 0 0.75rem; }
+dt { color: var(--muted); }
+dd { margin: 0; overflow-wrap: anywhere; }
+.errors { color: var(--bad); }
+
+form.config { border: 1px solid var(--line); border-radius: 4px; padding: 0.5rem 0.75rem; margin: 0 0 0.75rem; }
+form.config.readonly { background: #fafbfc; }
+form.config .head { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem; margin: 0 0 0.4rem; }
+form.config .head h3 { margin-right: auto; }
+fieldset { border: 1px solid var(--line); border-radius: 4px; margin: 0 0 0.5rem; padding: 0.4rem 0.6rem; }
+legend { font-weight: 600; padding: 0 0.3rem; }
+.object { display: grid; grid-template-columns: minmax(10rem, 1fr) 2fr; gap: 0.2rem 0.75rem; align-items: center; margin: 0 0 0.4rem; }
+.object label { overflow-wrap: anywhere; }
+.object .about { grid-column: 2; color: var(--muted); font-size: 0.75rem; overflow-wrap: anywhere; }
+.object input, .object select { font: inherit; width: 100%; padding: 0.2rem 0.3rem; }
+.actions { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; }
+.result { overflow-wrap: anywhere; }
+.result.good { color: var(--good); }
+.result.bad { color: var(--bad); }
+.notice { color: var(--warn); }
+
+table { width: 100%; border-collapse: collapse; }
+th, td { text-align: left; padding: 0.25rem 0.4rem; border-bottom: 1px solid var(--line); vertical-align: top; overflow-wrap: anywhere; }
+th { color: var(--muted); font-weight: normal; }
+
+@media (max-width: 800px) {
+  main { grid-template-columns: 1fr; }
+  .object { grid-template-columns: 1fr; }
+  .object .about { grid-column: 1; }
+}

@@ -1,5 +1,0 @@
-{
-  "Address": "broker",
-  "SecurePort": 8883,
-  "MaxPacketSize": 256
-}

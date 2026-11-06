@@ -1,0 +1,6 @@
+Package: libc6
+Source: glibc
+Version: 2.41-12+deb13u4
+Architecture: arm64
+Description: GNU C Library: Shared libraries
+ Contains the standard libraries.

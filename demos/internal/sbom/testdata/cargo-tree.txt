@@ -1,0 +1,7 @@
+oec-ffi v0.1.0 (/work/sdk/rust/oec-ffi)|MIT
+oec v0.1.0 (/work/sdk/rust/oec)|MIT
+aws-lc-rs v1.18.2|ISC AND (Apache-2.0 OR ISC)
+memchr v2.8.3|Unlicense OR MIT
+serde v1.0.229|MIT/Apache-2.0
+oec v0.1.0 (/work/sdk/rust/oec) (*)|MIT
+subtle v2.6.1|BSD-3-Clause

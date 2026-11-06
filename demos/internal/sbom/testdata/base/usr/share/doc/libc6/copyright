@@ -1,0 +1,46 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: GNU C Library
+Source: https://www.gnu.org/software/libc/
+
+Files: *
+Copyright: 1991-2025 Free Software Foundation, Inc.
+License: LGPL-2.1+
+
+Files: sunrpc/*
+Copyright: 2010 Oracle America, Inc.
+License: BSD-2-clause or GPL-2
+
+Files: math/one.c
+Copyright: none
+License: public-domain
+ This file is in the public domain.
+
+Files: math/two.c
+Copyright: none
+License: public-domain
+ Written by a hacker, placed in the public domain.
+
+Files: locale/coimbra.c
+Copyright: 1991 Universidade de Coimbra
+License: LGPL-2.1+ and Univ-Coimbra
+
+License: LGPL-2.1+
+ On Debian systems, the complete text of the GNU Lesser General Public
+ License version 2.1 can be found in /usr/share/common-licenses/LGPL-2.1.
+
+License: GPL-2
+ On Debian systems, the complete text of the GNU General Public License
+ version 2 can be found in /usr/share/common-licenses/GPL-2.
+
+License: BSD-2-clause
+ Redistribution and use in source and binary forms, with or without
+ modification, are permitted provided that the following conditions are met:
+ .
+ 1. Redistributions of source code must retain the above copyright notice.
+ 2. Redistributions in binary form must reproduce the above copyright notice.
+
+License: Univ-Coimbra
+ Permission to use, copy, modify and distribute this software is granted
+ by the University of Coimbra.
+ .
+ THIS SOFTWARE IS PROVIDED "AS IS".

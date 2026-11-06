@@ -1,0 +1,30 @@
+{
+  "comment": "Debian license short names (DEP-5) of the base image gcr.io/distroless/cc-debian13 mapped to SPDX identifiers, and the license expressions of the packages whose copyright file is not machine-readable (oec-sbom, ADR-0028 amendment C-084, decision D-1 of C-084). A short name that is not mapped here becomes LicenseRef-<package>-<name> with the exact text of the Debian copyright file. A new name without text, a copyright file that is not machine-readable and not listed in packages, or an SPDX id without images/licenses/<id>.txt fails the image build.",
+  "spdx": {
+    "Apache-2.0": "Apache-2.0",
+    "Artistic": "Artistic-1.0-Perl",
+    "BSD-2-clause": "BSD-2-Clause",
+    "BSD-3-clause": "BSD-3-Clause",
+    "BSL-1.0": "BSL-1.0",
+    "Expat": "MIT",
+    "FSFAP": "FSFAP",
+    "GPL-1+": "GPL-1.0-or-later",
+    "GPL-2": "GPL-2.0-only",
+    "GPL-2+": "GPL-2.0-or-later",
+    "GPL-3+": "GPL-3.0-or-later",
+    "ISC": "ISC",
+    "LGPL-2+": "LGPL-2.0-or-later",
+    "LGPL-2.1+": "LGPL-2.1-or-later",
+    "LGPL-3+": "LGPL-3.0-or-later",
+    "MPL-2.0": "MPL-2.0",
+    "Unicode-DFS-2016": "Unicode-DFS-2016",
+    "Zlib": "Zlib",
+    "zlib": "Zlib"
+  },
+  "packages": {
+    "gcc-14-base": "GPL-3.0-or-later WITH GCC-exception-3.1",
+    "libgcc-s1": "GPL-3.0-or-later WITH GCC-exception-3.1",
+    "libgomp1": "GPL-3.0-or-later WITH GCC-exception-3.1",
+    "libstdc++6": "GPL-3.0-or-later WITH GCC-exception-3.1"
+  }
+}

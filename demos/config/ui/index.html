@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OEC Config</title>
+<link rel="stylesheet" href="/app.css">
+<script src="/app.js" defer></script>
+</head>
+<body>
+<header>
+  <h1>OEC Config</h1>
+  <span id="state" class="pill">…</span>
+  <span id="live" class="pill off">connecting</span>
+</header>
+<main>
+  <section class="panel" id="apps-panel">
+    <h2>Applications <small id="count"></small></h2>
+    <p class="hint">Found on the Message Bus by their Birth (MAM). Choose one to see its Configs.</p>
+    <button type="button" id="refresh-all">Discover again</button>
+    <ul id="apps"></ul>
+  </section>
+  <section class="panel" id="detail">
+    <p class="empty">No application chosen.</p>
+  </section>
+  <section class="panel wide" id="sets-panel">
+    <h2>Set results <small>newest first</small></h2>
+    <p class="hint">Every <code>Set Config</code> of this service with the Status event of the application
+      (sensitive values stay masked).</p>
+    <table>
+      <thead><tr><th>Time</th><th>Application</th><th>Context</th><th>Values</th><th>Result</th></tr></thead>
+      <tbody id="sets"></tbody>
+    </table>
+  </section>
+</main>
+<footer>OEC v2.0 demo &middot; config service</footer>
+</body>
+</html>

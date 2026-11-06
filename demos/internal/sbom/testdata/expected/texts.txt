@@ -1,0 +1,13 @@
+Apache-2.0
+BSD-2-Clause
+BSD-3-Clause
+GCC-exception-3.1
+GPL-2.0-only
+GPL-3.0-or-later
+ISC
+LGPL-2.1-or-later
+LicenseRef-libc6-Univ-Coimbra
+LicenseRef-libc6-public-domain
+LicenseRef-tzdata-public-domain
+MIT
+Unlicense

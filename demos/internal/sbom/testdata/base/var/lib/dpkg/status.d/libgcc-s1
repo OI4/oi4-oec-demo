@@ -1,0 +1,4 @@
+Package: libgcc-s1
+Source: gcc-14
+Version: 14.2.0-19
+Architecture: arm64

@@ -1,0 +1,62 @@
+:root {
+  --bg: #f6f7f9;
+  --fg: #1d2330;
+  --muted: #5d6677;
+  --panel: #fff;
+  --line: #d9dde4;
+  --accent: #1f6feb;
+  --wind: #8250df;
+  --good: #1a7f37;
+  --warn: #9a6700;
+  --bad: #cf222e;
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-size: 14px;
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--fg); }
+header { display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1.25rem; background: var(--fg); color: #fff; }
+header h1 { font-size: 1.2rem; margin: 0 auto 0 0; }
+main { display: grid; grid-template-columns: minmax(16rem, 1fr) 3fr; gap: 1rem; padding: 1rem 1.25rem; align-items: start; }
+footer { padding: 0.5rem 1.25rem 1.5rem; color: var(--muted); font-size: 0.85rem; }
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 0.75rem 1rem; min-width: 0; }
+.panel.wide { grid-column: 1 / -1; }
+.attribution { border-color: var(--accent); background: #eef4ff; }
+.attribution a { color: var(--accent); }
+h2 { font-size: 1rem; margin: 0 0 0.5rem; }
+h2 small { color: var(--muted); font-weight: normal; }
+.hint { color: var(--muted); margin: 0 0 0.75rem; }
+code { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 0.9em; }
+
+.pill { border-radius: 999px; padding: 0.15rem 0.6rem; font-size: 0.8rem; background: #6e7781; color: #fff; white-space: nowrap; }
+.pill.online, .pill.on, .pill.NORMAL_0 { background: var(--good); }
+.pill.connecting, .pill.reconnecting, .pill.off, .pill.OFF_SPEC_3, .pill.MAINTENANCE_REQUIRED_4,
+.pill.CHECK_FUNCTION_2, .pill.frost, .pill.storm { background: var(--warn); }
+.pill.closed, .pill.error, .pill.FAILURE_1 { background: var(--bad); }
+
+dl { display: grid; grid-template-columns: max-content 1fr; gap: 0.25rem 1rem; margin: 0; }
+dt { color: var(--muted); }
+dd { margin: 0; overflow-wrap: anywhere; }
+
+#stations { display: grid; grid-template-columns: repeat(auto-fill, minmax(19rem, 1fr)); gap: 0.75rem; }
+.station { border: 1px solid var(--line); border-radius: 4px; padding: 0.5rem 0.6rem; }
+.station.failed { border-color: var(--bad); }
+.station .title { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem; }
+.station .title strong { margin-right: auto; font-size: 1rem; }
+.station .where { color: var(--muted); font-size: 0.8rem; margin: 0.2rem 0 0.4rem; overflow-wrap: anywhere; }
+.station .values { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.3rem; }
+.station .value { font-size: 1.1rem; font-weight: 600; }
+.station .label { font-size: 0.75rem; color: var(--muted); font-weight: normal; display: block; }
+.station .error { color: var(--bad); font-size: 0.85rem; overflow-wrap: anywhere; }
+.station svg { width: 100%; height: 60px; display: block; margin-top: 0.4rem; }
+.station polyline { fill: none; stroke-width: 1.5; }
+.station polyline.temperature { stroke: var(--accent); }
+.station polyline.wind { stroke: var(--wind); }
+.legend { font-size: 0.75rem; color: var(--muted); }
+.legend .temperature { color: var(--accent); }
+.legend .wind { color: var(--wind); }
+.empty { color: var(--muted); font-style: italic; }
+
+@media (max-width: 800px) {
+  main { grid-template-columns: 1fr; }
+}
