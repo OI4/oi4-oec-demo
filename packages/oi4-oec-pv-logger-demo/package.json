@@ -1,6 +1,6 @@
 {
   "name": "@oi4/oi4-oec-pv-logger-demo",
-  "version": "1.1.0-preview.2",
+  "version": "2.0.0-preview.1",
   "description": "An OI4-compliant demo application showing the use as a data consumer",
   "author": "Open Industry 4.0 Alliance - Community",
   "license": "MIT",
@@ -21,28 +21,29 @@
     "url": "git@github.com:OI4/oi4-oec-demo.git"
   },
   "dependencies": {
-    "@oi4/oi4-oec-service-node": "^1.1.0-preview.12",
-    "@types/ws": "^8.5.2",
     "@dabh/diagnostics": "^2.0.3",
-    "axios": "^1.9.0",
+    "@oi4/oi4-oec-service-node": "^2.0.0-preview.1",
+    "@types/ws": "^8.5.2",
     "ajv": "^8.12.0",
     "ajv-formats": "^2.1.1",
     "async-mqtt": "^2.6.3",
+    "axios": "1.12.0",
     "cors": "^2.8.5",
     "dotenv": "^16.0.0",
     "glossy": "^0.1.7",
+    "lodash": "4.17.23",
+    "nan": "^2.22.2",
     "sequential-task-queue": "^1.2.1",
     "swagger-ui-express": "^4.3.0",
-    "winston": "^3.6.0",
-    "winston-syslog": "^2.5.0",
-    "lodash": "^4.17.21",
     "uuid": "^9.0.1",
-    "nan": "^2.22.2",
-    "vary": "^1.1.2"
+    "vary": "^1.1.2",
+    "winston": "^3.6.0",
+    "winston-syslog": "^2.5.0"
   },
   "devDependencies": {
     "@types/cors": "^2.8.10",
-    "js-yaml": "^3.14.0"
+    "@types/node": "20",
+    "js-yaml": "4.1.1"
   },
   "scripts": {
     "unZip": "yarn run clean && unzip -d ./docker docker_configs.zip",

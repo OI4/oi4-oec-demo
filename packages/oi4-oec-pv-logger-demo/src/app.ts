@@ -12,7 +12,7 @@ import {ProcessValueOI4ApplicationBuilder} from './application/ProcessValueOI4Ap
 
 const basePath = process.env.BASE_PATH || './docker_configs';
 
-const LocalTestPaths: ISettingsPaths = {
+const localTestPaths: ISettingsPaths = {
     mqttSettings: {
         brokerConfig: `${basePath}/mqtt/broker.json`,
         caCertificate: `${basePath}/docker_configs/certs/ca.pem`,
@@ -32,16 +32,16 @@ const LocalTestPaths: ISettingsPaths = {
     }
 }
 
-export const IS_LOCAL = process.argv.length > 2 && process.argv[2] === 'local';
+export const isLocal = process.argv.length > 2 && process.argv[2] === 'local';
 
-const PV_TOPIC = `${oi4Namespace}/+/+/+/+/+/${Methods.PUB}/${Resources.DATA}/+/+/+/+/oi4_pv`;
+const pvTopic = `${oi4Namespace}/+/+/+/+/+/${Methods.PUB}/${Resources.DATA}/+/+/+/+/oi4_pv`;
 
-const paths: ISettingsPaths = IS_LOCAL ? LocalTestPaths : defaultSettingsPaths;
+const paths: ISettingsPaths = isLocal ? localTestPaths : defaultSettingsPaths;
 
 const getMamFileLocation = (isLocal: boolean) => isLocal ? `${basePath}/config/mam.json` : defaultMAMFile;
-const applicationResources = new OI4ApplicationResources(getMamFileLocation(IS_LOCAL));
+const applicationResources = new OI4ApplicationResources(getMamFileLocation(isLocal));
 const oi4App = new OI4ApplicationFactory(applicationResources, paths).initialize(new ProcessValueOI4ApplicationBuilder()).createOI4Application();;
 oi4App.addListener(foreignMessage, listener);
-oi4App.addSubscription(PV_TOPIC, SubscriptionListConfig.NONE_0, 0).then();
+oi4App.addSubscription(pvTopic, SubscriptionListConfig.NONE_0, 0).then();
 
 console.log('|=========== FINISHED initiating Service Demo ============|');
