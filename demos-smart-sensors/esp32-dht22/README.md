@@ -86,8 +86,10 @@ Before passing the board on, erase it: `python -m esptool -p <serial port> erase
   connection and restart tests:
   [Run on real hardware](../../sdk/micro/README.md#run-on-real-hardware-opt-in).
 
-The sensor code ran on an AZ-Delivery ESP32-WROOM-32 DevKit, DHT22 on
-GPIO 23, ESP-IDF 6.1, against `oec/dev`: D7 L3 48 pass, 0 fail, 7 skip,
-PASS (2026-11-28, as a local variant of the Micro SDK example). This folder
-packages it as a demo of its own; its builds for `esp32` and `esp32s3` are
-checked, a run of this firmware on the board is still open.
+Tested on an AZ-Delivery ESP32-WROOM-32 DevKit, DHT22 on GPIO 23, ESP-IDF
+6.1, against `oec/dev` (2026-11-28): registry online with `NORMAL_0`/100
+and 0 violations, `Set` of the Interval through the config service `Good`
+(a new interval applies at once), the logger records Data, Health and the
+status event; D7 L3 through the proxy with restart hooks and
+`--peer --announce`: 46 pass, 0 fail, 1 info, 8 skip, PASS. The ESP32-S3
+build is checked, not run on a board.

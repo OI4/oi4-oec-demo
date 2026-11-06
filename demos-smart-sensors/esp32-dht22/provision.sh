@@ -52,4 +52,4 @@ chmod 700 "$tmp"
 } >"$tmp/oecprov.csv"
 python -m esp_idf_nvs_partition_gen generate "$tmp/oecprov.csv" "$tmp/oecprov.bin" 0x6000 >/dev/null
 python -m esptool -p "$port" write-flash 0x10000 "$tmp/oecprov.bin"
-echo "provision.sh: $uri, level $level, Wi-Fi $WIFI_SSID written; the board restarts"
+echo "provision.sh: $uri, level $level and the Wi-Fi written; the board restarts"

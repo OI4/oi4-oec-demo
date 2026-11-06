@@ -10,7 +10,7 @@ in the Community section of the guideline site.
 
 | Demo | Board, sensor | Platform | ServiceType | Messaging level | State |
 |---|---|---|---|---|---|
-| [`esp32-dht22/`](esp32-dht22/README.md) | ESP32 or ESP32-S3, DHT22 (AM2302) | ESP-IDF 6.1, C17 | `OTConnector` | L3 | builds `esp32`, `esp32s3`; its sensor code passed D7 L3 on an ESP32-WROOM-32 against `oec/dev` (48 pass, 0 fail) |
+| [`esp32-dht22/`](esp32-dht22/README.md) | ESP32 or ESP32-S3, DHT22 (AM2302) | ESP-IDF 6.1, C17 | `OTConnector` | L3 | tested on an ESP32-WROOM-32 against `oec/dev`: D7 L3 PASS (46 pass, 0 fail); `esp32s3` built only |
 
 The demos are firmware: they are built and flashed by hand (opt-in, never
 in the gate). The CI builds them with the ESP-IDF builds of the Micro SDK
