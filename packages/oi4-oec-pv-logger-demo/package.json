@@ -27,11 +27,11 @@
     "ajv": "^8.12.0",
     "ajv-formats": "^2.1.1",
     "async-mqtt": "^2.6.3",
-    "axios": "1.12.0",
+    "axios": "1.20.0",
     "cors": "^2.8.5",
     "dotenv": "^16.0.0",
     "glossy": "^0.1.7",
-    "lodash": "4.17.23",
+    "lodash": "4.18.1",
     "nan": "^2.22.2",
     "sequential-task-queue": "^1.2.1",
     "swagger-ui-express": "^4.3.0",
@@ -43,7 +43,7 @@
   "devDependencies": {
     "@types/cors": "^2.8.10",
     "@types/node": "20",
-    "js-yaml": "4.1.1"
+    "js-yaml": "3.15.2"
   },
   "scripts": {
     "unZip": "yarn run clean && unzip -d ./docker docker_configs.zip",
