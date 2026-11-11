@@ -71,9 +71,11 @@ Before passing the board on, erase it: `python -m esptool -p <serial port> erase
 
 ## Check
 
-- OEC Registry `https://localhost:5798/`, config service
-  `http://127.0.0.1:8783/`, logger `http://127.0.0.1:8781/` (compose
-  profiles `demos` and `registry` of `oec/dev`).
+- OEC Registry `https://localhost:5798/` (log in as `admin` with the
+  password in
+  `oec/dev/generated/roots/oec-registry/run/secrets/oi4/registry_admin_password`),
+  config service `http://127.0.0.1:8783/`, logger `http://127.0.0.1:8781/`
+  (compose profiles `demos` and `registry` of `oec/dev`).
 - D7 against the board, from `oec/dev`:
 
   ```sh

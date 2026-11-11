@@ -90,7 +90,16 @@ event streams.
   also by a wildcard (SF-107, REQ-RES-SUBLIST-016);
 - `Pub/Config` of any application updates the cached `Config`; a Close
   message or a Will marks the application offline (REQ-LIFE-011/012);
-- the service never lists itself.
+- the service never lists itself;
+- **limits** (C-113 RC-1): every client of the bus can announce
+  applications, so the service keeps at most 1000 applications, 256 KiB
+  per application (MAM, Profile, `Config`s, SubscriptionList; estimated
+  memory, a payload above it is not even parsed) and 64 MiB in total. An
+  offline application makes room for a new one (the one offline longest
+  first); without one, a new application is not listed and
+  `POST /api/refresh` for it answers 503. What does not fit is not kept
+  (a discovery notes it in `errors`); a warning in the log tells how many
+  updates were not kept, at most once a minute.
 
 ## Web UI
 
@@ -111,8 +120,9 @@ Open `http://127.0.0.1:8783/` in a browser while the service runs
   mask `********` as placeholder; left empty, the mask is sent back and the
   application keeps its value (GL-ADR-021); a new value is sent but never
   shown.
-- **Send Set Config** sends only the changed values (the service adds the
-  `Mandatory` ones) and shows the result of the `Status` event, e.g.
+- **Send Set Config** sends the changed values and, for every changed
+  group, the `Mandatory` objects with the value the form shows (C-113
+  RD-2; the service adds a sensitive one as the mask) and shows the result of the `Status` event, e.g.
   `Good (0x00000000)` or `BadOutOfRange (0x803C0000)`, under the form. The
   form shows the new values once the application publishes its `Config`;
   while the user edits, a change from the bus does not overwrite the form
@@ -146,12 +156,17 @@ is offline or the `Config` is not writable; 503 while not connected. The
 target decides on the values (REQ-RES-CONFIG-023): its `Status` event comes
 back as `status` with HTTP 200, also for a Bad status (e.g. `BadOutOfRange`,
 `good: false`); no Status event within the timeout is 504 with `error`.
-Every `Mandatory` object not in `values` is sent with its current value
-(REQ-RES-CONFIG-011). A `Sensitive` value is published as the mask
-`********` and goes back unchanged as the mask, which keeps the secret
-(REQ-RES-CONFIG-025, GL-ADR-021); a new secret is sent as given and is
-never shown – the history shows the mask. After a Good status the service
-reads the `Config` again.
+Every `Mandatory` object not in `values` is sent with its cached value
+(REQ-RES-CONFIG-011) – a value any client of the bus can have published
+in a `Config`, which is why the Web UI sends the ones it shows. A
+`Sensitive` value is published as the mask `********` and goes back
+unchanged as the mask, which keeps the secret (REQ-RES-CONFIG-025,
+GL-ADR-021); a new secret is sent as given and is never shown – the
+history shows the mask. An object once seen as `Sensitive` stays
+`Sensitive` and masked as long as the service lists its application, also
+if a later `Config` says otherwise (a warning in the log, C-113 RD-2): any
+client of the bus can publish a `Config` under any AppId. After a Good
+status the service reads the `Config` again.
 
 The API is for loopback and the Web UI of the service (A-357): no
 authentication, no TLS (a demo, A-305); it refuses a `Host` that is not

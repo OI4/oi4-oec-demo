@@ -7,7 +7,7 @@
 //! The callbacks of the SDK only update the [`Directory`] and queue jobs.
 
 use std::collections::{BTreeSet, HashMap};
-use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 use std::sync::mpsc::{Receiver, Sender};
 use std::sync::{Arc, Mutex, MutexGuard, PoisonError, Weak};
 use std::time::{SystemTime, UNIX_EPOCH};
@@ -17,7 +17,7 @@ use oec::prelude::*;
 use serde_json::{Value, json};
 
 use crate::directory::{
-    ApiError, AppKey, ConfigEntry, Directory, Discovery, SetOutcome, SetRequest,
+    ApiError, AppKey, ConfigEntry, Directory, Discovery, Limits, SetOutcome, SetRequest,
 };
 use crate::settings::Settings;
 
@@ -31,6 +31,26 @@ pub(crate) enum Job {
     Discover(AppKey),
 }
 
+/// At most one warning of a kind in this time (ms): a flood on the bus
+/// must not flood the log (C-113 RC-1).
+const WARN_INTERVAL_MS: u64 = 60_000;
+
+/// Lets a warning pass at most once per [`WARN_INTERVAL_MS`].
+#[derive(Debug, Default)]
+struct Throttle(Mutex<Option<u64>>);
+
+impl Throttle {
+    fn ready(&self) -> bool {
+        let now = now_ms();
+        let mut last = lock(&self.0);
+        if last.is_some_and(|l| now.saturating_sub(l) < WARN_INTERVAL_MS) {
+            return false;
+        }
+        *last = Some(now);
+        true
+    }
+}
+
 /// The service.
 pub(crate) struct Service {
     consumer: Consumer,
@@ -41,6 +61,10 @@ pub(crate) struct Service {
     /// Applications queued for a discovery (no second job for one).
     pending: Mutex<BTreeSet<AppKey>>,
     subscriptions: Mutex<Vec<Subscription>>,
+    /// [`Directory::dropped`] when last warned about.
+    dropped: AtomicU64,
+    dropped_warning: Throttle,
+    sensitive_warning: Throttle,
 }
 
 fn lock<T>(m: &Mutex<T>) -> MutexGuard<'_, T> {
@@ -84,8 +108,19 @@ fn config_key(r: &Received) -> Option<(String, String)> {
     Some((r.data_set_writer_name().as_str().to_owned(), context))
 }
 
+/// The Payload of a received message; `None` if it is no JSON or larger
+/// than the directory keeps of an application, which is not even parsed
+/// (C-113 RC-1).
+fn payload(r: &Received) -> Option<Value> {
+    let json = r.payload_json();
+    if json.len() > Limits::DEFAULT.app_bytes {
+        return None;
+    }
+    serde_json::from_str(&json).ok()
+}
+
 fn config_entry(r: &Received) -> Option<ConfigEntry> {
-    let config: Value = serde_json::from_str(&r.payload_json()).ok()?;
+    let config = payload(r)?;
     Some(ConfigEntry {
         data_set_writer_id: r.data_set_writer_id(),
         config,
@@ -109,7 +144,49 @@ impl Service {
             jobs: Mutex::new(jobs),
             pending: Mutex::new(BTreeSet::new()),
             subscriptions: Mutex::new(Vec::new()),
+            dropped: AtomicU64::new(0),
+            dropped_warning: Throttle::default(),
+            sensitive_warning: Throttle::default(),
         })
+    }
+
+    /// Runs `f` on the directory, then warns (rate-limited) about what its
+    /// limits did not keep (C-113 RC-1).
+    fn update<R>(&self, f: impl FnOnce(&mut Directory) -> R) -> R {
+        let (r, dropped) = {
+            let mut dir = lock(&self.dir);
+            let r = f(&mut dir);
+            (r, dir.dropped())
+        };
+        if dropped > self.dropped.load(Ordering::SeqCst) && self.dropped_warning.ready() {
+            self.dropped.store(dropped, Ordering::SeqCst);
+            let l = Limits::DEFAULT;
+            log::warn!(
+                "{dropped} update(s) of applications not kept so far: the service keeps at most {} applications, {} KiB per application and {} MiB in total (too many or too large applications on the bus?)",
+                l.apps,
+                l.app_bytes / 1024,
+                l.total_bytes / (1024 * 1024)
+            );
+        }
+        r
+    }
+
+    /// Warns (rate-limited) about Config objects that are no longer
+    /// `Sensitive` and stay masked (C-113 RD-2); their values are not
+    /// logged (G-4.5).
+    fn warn_sensitive(&self, key: &AppKey, downgraded: &[String]) {
+        if !downgraded.is_empty() && self.sensitive_warning.ready() {
+            log::warn!(
+                "Config of {}: {} no longer Sensitive, kept masked (a Config published by another client?)",
+                key.1,
+                downgraded.join(", ")
+            );
+        }
+    }
+
+    fn store_config(&self, key: &AppKey, config: (String, String), entry: ConfigEntry) {
+        let downgraded = self.update(|d| d.config(key, config, entry));
+        self.warn_sensitive(key, &downgraded);
     }
 
     /// Subscribes to the presence of the applications and to every
@@ -155,15 +232,15 @@ impl Service {
             } => {
                 let key = key_of(*service_type, app);
                 let mam = mam.as_ref().and_then(|m| serde_json::to_value(m).ok());
-                if lock(&self.dir).online(key.clone(), mam) {
+                if self.update(|d| d.online(&key, mam)) {
                     self.queue(key);
                 }
             }
             Presence::OfflineGraceful { service_type, app } => {
-                lock(&self.dir).offline(&key_of(*service_type, app), true);
+                self.update(|d| d.offline(&key_of(*service_type, app), true));
             }
             Presence::OfflineUngraceful { service_type, app } => {
-                lock(&self.dir).offline(&key_of(*service_type, app), false);
+                self.update(|d| d.offline(&key_of(*service_type, app), false));
             }
             _ => {}
         }
@@ -171,8 +248,12 @@ impl Service {
 
     fn published_config(&self, r: &Received) {
         let key = key_of(r.service_type(), &r.app());
-        if let (Some(config), Some(entry)) = (config_key(r), config_entry(r)) {
-            lock(&self.dir).config(&key, config, entry);
+        let Some(config) = config_key(r) else {
+            return;
+        };
+        match config_entry(r) {
+            Some(entry) => self.store_config(&key, config, entry),
+            None => self.update(Directory::refused),
         }
     }
 
@@ -209,7 +290,7 @@ impl Service {
         Ok(answers
             .iter()
             .find(|r| r.data_set_writer_name().as_str() == key.1)
-            .and_then(|r| serde_json::from_str(&r.payload_json()).ok()))
+            .and_then(payload))
     }
 
     /// `Get MAM` of the configured applications (A-355); the ones that
@@ -219,7 +300,7 @@ impl Service {
             let key = key_of(*st, app);
             match self.get_mam(&key) {
                 Ok(mam) => {
-                    lock(&self.dir).online(key, mam);
+                    self.update(|d| d.online(&key, mam));
                 }
                 Err(e) => log::info!("Get MAM of {}: {e}", key.1),
             }
@@ -249,8 +330,7 @@ impl Service {
         };
         if let Some(answers) = get(Resource::Profile, &mut found) {
             found.profile = answers.first().map(|r| {
-                serde_json::from_str::<Value>(&r.payload_json())
-                    .ok()
+                payload(r)
                     .and_then(|p| p.get("Resources").and_then(Value::as_array).cloned())
                     .unwrap_or_default()
                     .iter()
@@ -267,8 +347,14 @@ impl Service {
         let (config, sublist) = (has("Config"), has("SubscriptionList"));
         if config {
             for r in get(Resource::Config, &mut found).into_iter().flatten() {
-                if let (Some(k), Some(e)) = (config_key(&r), config_entry(&r)) {
-                    found.configs.insert(k, e);
+                match (config_key(&r), config_entry(&r)) {
+                    (Some(k), Some(e)) => {
+                        found.configs.insert(k, e);
+                    }
+                    (Some(_), None) => found
+                        .errors
+                        .push("Get Config: a DataSet that is no JSON or too large".to_owned()),
+                    _ => {}
                 }
             }
         }
@@ -276,7 +362,7 @@ impl Service {
             found.subscriptions = get(Resource::SubscriptionList, &mut found).map(|answers| {
                 answers
                     .iter()
-                    .filter_map(|r| serde_json::from_str::<Value>(&r.payload_json()).ok())
+                    .filter_map(payload)
                     .filter_map(|e| e.get("TopicPath")?.as_str().map(str::to_owned))
                     .collect()
             });
@@ -287,7 +373,8 @@ impl Service {
             found.configs.len(),
             found.errors.len()
         );
-        lock(&self.dir).discovered(key, found, now_ms());
+        let downgraded = self.update(|d| d.discovered(key, found, now_ms()));
+        self.warn_sensitive(key, &downgraded);
     }
 
     /// `POST /api/refresh`: discovers one application (`key`) or every
@@ -305,7 +392,15 @@ impl Service {
                 let mam = self
                     .get_mam(&k)
                     .map_err(|e| ApiError::new(404, format!("Get MAM: {e}")))?;
-                lock(&self.dir).online(k.clone(), mam);
+                if !self.update(|d| {
+                    d.online(&k, mam);
+                    d.knows(&k)
+                }) {
+                    return Err(ApiError::new(
+                        503,
+                        "no room for another application: the service lists the most it keeps",
+                    ));
+                }
                 vec![k]
             }
             None => lock(&self.dir).online_apps(),
@@ -351,11 +446,10 @@ impl Service {
                 .get_blocking(Resource::Config, &target, &self.options())
             {
                 Ok(answers) => {
-                    let mut dir = lock(&self.dir);
                     for r in &answers {
                         if let Some(e) = config_entry(r) {
                             let k = (req.source.clone(), req.context.clone());
-                            dir.config(&key, k, e);
+                            self.store_config(&key, k, e);
                         }
                     }
                 }

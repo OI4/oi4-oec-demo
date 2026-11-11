@@ -293,7 +293,14 @@ function dataVersion(classId) {
 }
 
 const NAME = /^[A-Za-z_][A-Za-z0-9_]*$/;
+// A key that a plain JS object cannot hold as own data by assignment (C-113 RD-3).
+const PROTO_KEY = '__proto__';
 const TAG = /^[A-Za-z0-9_-]+$/;
+
+/** The own property `key` of `obj`, never an inherited one (C-113 RD-3). */
+function own(obj, key) {
+  return obj != null && typeof obj === 'object' && Object.hasOwn(obj, key) ? obj[key] : undefined;
+}
 
 /** The field type of a JS value for derived fields. */
 function typeOf(value) {
@@ -318,13 +325,13 @@ function normalizeFields(defs) {
       name: x.name ?? x.Name, type: x.type ?? x.Type, unit: x.unit ?? x.Unit,
       description: x.description ?? x.Description, low: x.low ?? x.Low, high: x.high ?? x.High,
     } : x;
-    if (!d || !NAME.test(d.name || '') || d.name.length > 64) {
+    if (!d || !NAME.test(d.name || '') || d.name.length > 64 || d.name === PROTO_KEY) {
       throw new OecError(`field name ${JSON.stringify(d && d.name)}: letters, digits and "_", not starting with a digit`);
     }
     if (seen.has(d.name)) throw new OecError(`field ${d.name} defined twice`);
     seen.add(d.name);
     const type = d.type || 'Double';
-    if (!(type in BUILTIN)) throw new OecError(`field ${d.name}: unknown type ${type} (${Object.keys(BUILTIN).join(', ')})`);
+    if (!Object.hasOwn(BUILTIN, type)) throw new OecError(`field ${d.name}: unknown type ${type} (${Object.keys(BUILTIN).join(', ')})`);
     const f = { name: d.name, type };
     if (d.unit) f.unit = String(d.unit);
     if (d.description) f.description = String(d.description);
@@ -342,6 +349,7 @@ function normalizeFields(defs) {
 /** Fields derived from a value object (numbers as Double). */
 function deriveFields(values) {
   return Object.entries(values).map(([name, v]) => {
+    if (name === PROTO_KEY) throw new OecError(`field name ${PROTO_KEY} is reserved`);
     const type = typeOf(v);
     if (!type) throw new OecError(`field ${name}: only numbers, booleans and strings can be derived`);
     return { name, type };
@@ -484,13 +492,13 @@ function normalizeConfig(def) {
   const out = {};
   for (const [g, group] of Object.entries(def)) {
     if (g === 'Context') continue;
-    if (!CONFIG_NAME.test(g)) throw new OecError(`GroupName ${JSON.stringify(g)}: letters, digits, "-" and "_", not starting with a digit or "-"`);
+    if (!CONFIG_NAME.test(g) || g === PROTO_KEY) throw new OecError(`GroupName ${JSON.stringify(g)}: letters, digits, "-" and "_", not starting with a digit or "-"`);
     if (!group || typeof group !== 'object' || Array.isArray(group)) throw new OecError(`group ${g} is no object`);
     const ng = { Name: lt(group.Name ?? g) };
     if (group.Description != null) ng.Description = lt(group.Description);
     for (const [n, o] of Object.entries(group)) {
       if (n === 'Name' || n === 'Description') continue;
-      if (!CONFIG_NAME.test(n)) throw new OecError(`ConfigName ${JSON.stringify(n)} in group ${g}: letters, digits, "-" and "_", not starting with a digit or "-"`);
+      if (!CONFIG_NAME.test(n) || n === PROTO_KEY) throw new OecError(`ConfigName ${JSON.stringify(n)} in group ${g}: letters, digits, "-" and "_", not starting with a digit or "-"`);
       if (!o || typeof o !== 'object' || Array.isArray(o)) throw new OecError(`${g}/${n} is no object`);
       const type = o.Type || 'String';
       if (!CONFIG_TYPES.includes(type)) throw new OecError(`${g}/${n}: Type is one of ${CONFIG_TYPES.join(', ')}`);
@@ -587,24 +595,25 @@ function parseConfigSet(current, payload) {
   let objects = 0;
   for (const [g, gj] of Object.entries(payload)) {
     if (g === 'Context') {
-      if (!sameLt(gj, current.Context)) return { status: 'BadNotWritable' };
+      if (!sameLt(gj, own(current, 'Context'))) return { status: 'BadNotWritable' };
       continue;
     }
-    const group = current[g];
+    // Only own names: an inherited one (constructor, __proto__, …) is unknown (C-113 RD-3).
+    const group = own(current, g);
     if (!group) return { status: 'BadNotFound' };
     if (!gj || typeof gj !== 'object' || Array.isArray(gj)) return { status: 'BadDecodingError' };
     for (const [n, oj] of Object.entries(gj)) {
       if (n === 'Name' || n === 'Description') {
-        if (!sameLt(oj, group[n])) return { status: 'BadNotWritable' };
+        if (!sameLt(oj, own(group, n))) return { status: 'BadNotWritable' };
         continue;
       }
-      const o = group[n];
+      const o = own(group, n);
       if (!o) return { status: 'BadNotFound' };
       if (!oj || typeof oj !== 'object' || Array.isArray(oj)) return { status: 'BadDecodingError' };
       objects++;
-      if (!('Value' in oj)) return { status: 'BadInvalidArgument' };
+      if (!Object.hasOwn(oj, 'Value')) return { status: 'BadInvalidArgument' };
       if (typeof oj.Value !== 'string') return { status: 'BadTypeMismatch' };
-      if ('Type' in oj && oj.Type !== o.Type) return { status: 'BadTypeMismatch' };
+      if (Object.hasOwn(oj, 'Type') && oj.Type !== o.Type) return { status: 'BadTypeMismatch' };
       const sensitive = o.Sensitive === true;
       for (const [key, j] of Object.entries(oj)) {
         let unchanged = true;
@@ -613,7 +622,11 @@ function parseConfigSet(current, payload) {
           case 'Description': unchanged = sameLt(j, o.Description); break;
           case 'Unit': unchanged = sameLt(j, o.Unit); break;
           case 'DefaultValue':
-            unchanged = sameLt(j, o.DefaultValue) || (sensitive && j === SENSITIVE_MASK && !!o.DefaultValue);
+            // A Sensitive DefaultValue is compared as published, so the status
+            // never depends on its clear text (C-113 RS-1 analog, REQ-RES-CONFIG-024).
+            unchanged = sensitive
+              ? j === SENSITIVE_MASK || sameLt(j, o.DefaultValue ? SENSITIVE_MASK : o.DefaultValue)
+              : sameLt(j, o.DefaultValue);
             break;
           case 'Mandatory': unchanged = typeof j === 'boolean' && j === (o.Mandatory === true); break;
           case 'Sensitive': unchanged = typeof j === 'boolean' && j === sensitive; break;
@@ -628,7 +641,7 @@ function parseConfigSet(current, payload) {
       changes.push([g, n, oj.Value]);
     }
     for (const [n, o] of Object.entries(group)) {
-      if (n !== 'Name' && n !== 'Description' && o.Mandatory === true && !(n in gj)) return { status: 'BadInvalidArgument' };
+      if (n !== 'Name' && n !== 'Description' && o.Mandatory === true && !Object.hasOwn(gj, n)) return { status: 'BadInvalidArgument' };
     }
   }
   if (objects === 0) return { status: 'BadInvalidArgument' };
@@ -760,7 +773,7 @@ module.exports = {
   DSW_PAGINATION_REQUEST, DSW_PAGINATION, DSW, HEALTH_STATES, SYSLOG_LEVELS, STATUS, BUILTIN,
   SENSITIVE_MASK, CONFIG_TYPES, OBJECT_KEYS, NAME, TAG,
   OecError,
-  dnpEncode, identificationLink, encodeId, decodeId, encodeLevel, decodeLevel, checkFilterValue,
+  own, dnpEncode, identificationLink, encodeId, decodeId, encodeLevel, decodeLevel, checkFilterValue,
   parseTopic, topic, topicMatches,
   timestamp, MessageIds,
   dsm, networkMessage, parseMessage, localizedText, lt, statusPayload, statusLevel,

@@ -79,6 +79,12 @@ function groupOf(topicPath) {
   return filter.length === 0 || wild ? resource : `${resource}/${filter.join('/')}`;
 }
 
+/** The own group object `g` of `out`, created on first use (C-113 RD-3). */
+function groupOut(out, g) {
+  if (!Object.hasOwn(out, g)) out[g] = {};
+  return out[g];
+}
+
 class Provider {
   /**
    * @param {object} o
@@ -233,7 +239,7 @@ class Provider {
     }
     const out = {};
     for (const f of d.fields) {
-      const v = f.name in values ? values[f.name] : d.values?.[f.name];
+      const v = Object.hasOwn(values, f.name) ? values[f.name] : oec.own(d.values, f.name);
       if (v === undefined) throw new OecError(`Data ${d.tag}: no value for field ${f.name}`);
       out[f.name] = oec.fieldValue(f, v);
     }
@@ -281,7 +287,7 @@ class Provider {
     config.Context = { Name: oec.lt(ctx.Name ?? name) };
     if (ctx.Description != null) config.Context.Description = oec.lt(ctx.Description);
     for (const [g, n, o] of oec.configObjects(config)) {
-      const v = values?.[g]?.[n];
+      const v = oec.own(oec.own(values, g), n);
       if (v != null && !oec.checkConfigValue(o, oec.configString(v))) o.Value = oec.configString(v);
     }
     s.configs.set(name, { name, config, changedAt: this.clock(), writerId: this.writerIds.get(`Config|${s.il}|${name}`) });
@@ -299,7 +305,7 @@ class Provider {
     const c = this.source(il).configs.get(name);
     if (!c) throw new OecError(`Config ${name} is not defined`);
     const out = {};
-    for (const [g, n, o] of oec.configObjects(c.config)) (out[g] ??= {})[n] = o.Value;
+    for (const [g, n, o] of oec.configObjects(c.config)) groupOut(out, g)[n] = o.Value;
     return out;
   }
 
@@ -307,7 +313,7 @@ class Provider {
   configTypedValues(il, name) {
     const c = this.source(il).configs.get(name);
     const out = {};
-    for (const [g, n, o] of oec.configObjects(c.config)) (out[g] ??= {})[n] = oec.configTyped(o, o.Value);
+    for (const [g, n, o] of oec.configObjects(c.config)) groupOut(out, g)[n] = oec.configTyped(o, o.Value);
     return out;
   }
 
@@ -319,7 +325,7 @@ class Provider {
     const changes = [];
     for (const [g, group] of Object.entries(values || {})) {
       for (const [n, v] of Object.entries(group || {})) {
-        const o = c.config[g]?.[n];
+        const o = oec.own(oec.own(c.config, g), n);
         if (!o || n === 'Name' || n === 'Description') throw new OecError(`Config ${name}: unknown config element ${g}/${n}`);
         const value = oec.configString(v);
         const bad = oec.checkConfigValue(o, value);
@@ -804,7 +810,7 @@ class Provider {
     if (!p || typeof p !== 'object' || Array.isArray(p)) return { status: 'BadDecodingError' };
     const values = {};
     for (const f of d.fields) {
-      if (!(f.name in p)) return { status: 'BadInvalidArgument' };
+      if (!Object.hasOwn(p, f.name)) return { status: 'BadInvalidArgument' };
       try {
         values[f.name] = oec.fieldValue(f, p[f.name]);
       } catch {

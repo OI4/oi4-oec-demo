@@ -266,6 +266,13 @@
         show("Nothing changed.", "");
         return;
       }
+      // The Mandatory objects of a changed group go with the value shown
+      // here, not with one the service cached since (C-113 RD-2); a
+      // sensitive one is added by the service as the mask.
+      for (const input of form.querySelectorAll("[data-mandatory]")) {
+        const g = values[input.dataset.group];
+        if (g && !(input.dataset.name in g)) g[input.dataset.name] = input.value;
+      }
       send.disabled = true;
       show("sending …", "");
       try {
@@ -334,6 +341,7 @@
       input.dataset.group = group;
       input.dataset.name = name;
       input.dataset.original = sensitive ? "" : v;
+      if (obj.Mandatory === true && !sensitive) input.dataset.mandatory = "1";
     }
     row.append(label, input);
 
