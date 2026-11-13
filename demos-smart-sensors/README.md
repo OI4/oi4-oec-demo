@@ -10,9 +10,10 @@ in the Community section of the guideline site.
 
 | Demo | Board, sensor | Platform | ServiceType | Messaging level | State |
 |---|---|---|---|---|---|
-| [`esp32-dht22/`](esp32-dht22/README.md) | ESP32 or ESP32-S3, DHT22 (AM2302) | ESP-IDF 6.1, C17 | `OTConnector` | L3 | tested on an ESP32-WROOM-32 against `oec/dev`: D7 L3 PASS (46 pass, 0 fail); `esp32s3` built only |
+| [`esp32-dht22/`](esp32-dht22/README.md) | ESP32 or ESP32-S3, DHT22 (AM2302) | ESP-IDF 6.1, C17 | `OTConnector` | L3 | tested on an ESP32-WROOM-32 against `oec/dev`: D7 L3 PASS (46 pass, 0 fail); on an ESP32-S3 over Wi-Fi: D7 L3 without the proxy 39 pass, 0 fail |
+| [`m5core2-display/`](m5core2-display/README.md) | M5Stack Core2, its display | Arduino-ESP32 3.3, M5Unified | `OTConnector` | L3 | shows the climate of the DHT22 demo (consumer subscriptions, C-114); tested against `oec/dev`: D7 L3 without the proxy 38 pass, 0 fail |
 
 The demos are firmware: they are built and flashed by hand (opt-in, never
-in the gate). The CI builds them with the ESP-IDF builds of the Micro SDK
-(`oec/ci/micro-esp-idf.sh`, workflow `micro.yml`); a board is not needed
-for that.
+in the gate). The CI builds them with the ESP-IDF and Arduino builds of the
+Micro SDK (`oec/ci/micro-esp-idf.sh`, `oec/ci/micro-arduino.sh`, workflow
+`micro.yml`); a board is not needed for that.

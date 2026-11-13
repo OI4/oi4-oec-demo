@@ -93,5 +93,9 @@ Tested on an AZ-Delivery ESP32-WROOM-32 DevKit, DHT22 on GPIO 23, ESP-IDF
 and 0 violations, `Set` of the Interval through the config service `Good`
 (a new interval applies at once), the logger records Data, Health and the
 status event; D7 L3 through the proxy with restart hooks and
-`--peer --announce`: 46 pass, 0 fail, 1 info, 8 skip, PASS. The ESP32-S3
-build is checked, not run on a board.
+`--peer --announce`: 46 pass, 0 fail, 1 info, 8 skip, PASS. Also on an
+ESP32-S3 (QFN56 rev v0.2), DHT22 on GPIO 4, over Wi-Fi against `oec/dev`
+with the broker certificate for its LAN address (`go run ./pki -san <ip>`,
+2026-11-28): D7 L3 without the proxy 39 pass, 0 fail, 16 skip (connection
+and restart tests); the [Core2 display](../m5core2-display/README.md)
+shows its climate.
