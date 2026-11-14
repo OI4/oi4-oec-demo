@@ -1,0 +1,3 @@
+# The variant of the ESP32-S3-LCD-1.47 board (build.sh esp32s3-lcd147), on
+# top of sdkconfig.defaults: display and RGB LED (main/lcd147.c).
+CONFIG_DEMO_LCD147=y

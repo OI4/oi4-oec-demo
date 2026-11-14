@@ -7,6 +7,7 @@
 #include <stdatomic.h>
 #include <stdbool.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "driver/gpio.h"
 #include "esp_log.h"
@@ -83,6 +84,15 @@ static atomic_uint reading_seq, failures;
 /* Device task only. */
 static unsigned seen_seq;
 static bool failed;
+/* The Label for a local display, a copy taken on the device task. */
+static portMUX_TYPE label_lock = portMUX_INITIALIZER_UNLOCKED;
+static char label_copy[sizeof label] = "DHT22 climate sensor";
+
+static void label_publish(void) {
+    taskENTER_CRITICAL(&label_lock);
+    memcpy(label_copy, label, sizeof label_copy);
+    taskEXIT_CRITICAL(&label_lock);
+}
 
 static unsigned parse_interval(void) {
     unsigned s = 0;
@@ -98,6 +108,7 @@ static void on_config(void *ctx, size_t context) {
     unsigned s = parse_interval();
     if (atomic_exchange(&interval_s, s) != s && sensor)
         xTaskNotifyGive(sensor); /* the new interval applies now, not after the old one */
+    label_publish();
     (void)oecm_data_changed(device, 0); /* the Label is also in the Data */
 }
 
@@ -217,4 +228,25 @@ void climate_tick(void) {
     temperature = t;
     humidity = h;
     (void)oecm_data_changed(device, 0);
+}
+
+bool climate_latest(int *t10, int *h10, bool *failure) {
+    *failure = atomic_load(&failures) >= FAILURES_FOR_HEALTH;
+    if (atomic_load(&reading_seq) == 0)
+        return false;
+    *t10 = atomic_load(&last_t10);
+    *h10 = atomic_load(&last_h10);
+    return true;
+}
+
+void climate_label(char *out, size_t cap) {
+    if (!cap)
+        return;
+    taskENTER_CRITICAL(&label_lock);
+    size_t n = strnlen(label_copy, sizeof label_copy - 1);
+    if (n > cap - 1)
+        n = cap - 1;
+    memcpy(out, label_copy, n);
+    taskEXIT_CRITICAL(&label_lock);
+    out[n] = 0;
 }

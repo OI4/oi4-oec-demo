@@ -15,4 +15,43 @@ menu "OEC smart sensor demo (DHT22)"
         bool "Serial console commands stop and time"
         default y
 
+    config DEMO_LCD147
+        bool "ESP32-S3-LCD-1.47 board: readings on the display, temperature as LED colour"
+        depends on IDF_TARGET_ESP32S3
+        default n
+        help
+            The Waveshare ESP32-S3-LCD-1.47 and 1.47B boards: ST7789
+            172 x 320 display (SPI on GPIO 39 ... 42, 45, backlight
+            DEMO_LCD147_BL_GPIO) and a WS2812 RGB LED on GPIO 38. Model and
+            ProductCode name the board.
+
+    config DEMO_LCD147_BL_GPIO
+        int "GPIO of the display backlight (46: 1.47B with USB-C, 48: 1.47 with USB-A)"
+        depends on DEMO_LCD147
+        range 0 48
+        default 46
+
+    config DEMO_LCD147_FLIP
+        bool "Rotate the display by 180 degrees"
+        depends on DEMO_LCD147
+        default n
+
+    config DEMO_COLD_C
+        int "Temperature shown blue (degrees Celsius, and below)"
+        depends on DEMO_LCD147
+        range -40 79
+        default 15
+
+    config DEMO_HOT_C
+        int "Temperature shown red (degrees Celsius, and above; above DEMO_COLD_C)"
+        depends on DEMO_LCD147
+        range -39 80
+        default 30
+
+    config DEMO_LED_BRIGHTNESS
+        int "Brightness of the RGB LED (1 ... 255)"
+        depends on DEMO_LCD147
+        range 1 255
+        default 48
+
 endmenu

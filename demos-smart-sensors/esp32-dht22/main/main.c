@@ -10,6 +10,10 @@
  * u32 max_packet (the MaxPacketSize of broker.json, default 262144).
  * The persisted records of Level 3 live in the default "nvs" partition.
  *
+ * The variant of the ESP32-S3-LCD-1.47 board (DEMO_LCD147, lcd147.c) also
+ * shows the readings on its display and the temperature as the colour of
+ * its RGB LED.
+ *
  * Serial console (DEMO_CONSOLE): "stop" ends the device gracefully (Close,
  * DISCONNECT) and prints "oecm: stopped" (restart hooks of D7); "time <unix
  * ms>" sets the clock when no SNTP server is reachable.
@@ -46,10 +50,19 @@
 #include "oecm.h"
 #include "oecm_esp.h"
 #include "climate.h"
+#if CONFIG_DEMO_LCD147
+#include "lcd147.h"
+#define SHOW(online, text) lcd147_status(online, text)
+#else
+#define SHOW(online, text) ((void)(online), (void)(text))
+#endif
 
 static const char *TAG = "demo";
 
-#if CONFIG_IDF_TARGET_ESP32S3
+#if CONFIG_DEMO_LCD147
+#define MODEL "OEC Micro ESP32-S3-LCD-1.47 DHT22"
+#define PRODUCT_CODE "OECM-ESP32S3-LCD-DHT22"
+#elif CONFIG_IDF_TARGET_ESP32S3
 #define MODEL "OEC Micro ESP32-S3 DHT22"
 #define PRODUCT_CODE "OECM-ESP32S3-DHT22"
 #else
@@ -70,6 +83,7 @@ static char refdes[REFDES_SIZE];
 static oecm_config cfg;
 static EventGroupHandle_t net_events;
 static atomic_bool stop_requested;
+static char address[16]; /* the IPv4 address, written once by on_ip */
 
 /* Reads a provisioning string (heap copy, NULL if absent). */
 static char *prov_str(nvs_handle_t h, const char *key) {
@@ -90,6 +104,7 @@ static void on_ip(void *arg, esp_event_base_t base, int32_t id, void *data) {
     (void)id;
     ip_event_got_ip_t *e = data;
     ESP_LOGI(TAG, "address " IPSTR, IP2STR(&e->ip_info.ip));
+    snprintf(address, sizeof address, IPSTR, IP2STR(&e->ip_info.ip));
     xEventGroupSetBits(net_events, 1);
 }
 
@@ -164,10 +179,14 @@ void app_main(void) {
     }
     ESP_ERROR_CHECK(e);
     climate_start();
+#if CONFIG_DEMO_LCD147
+    lcd147_start();
+#endif
     nvs_handle_t prov;
     if (nvs_flash_init_partition("oecprov") != ESP_OK ||
         nvs_open_from_partition("oecprov", "oec", NVS_READONLY, &prov) != ESP_OK) {
         ESP_LOGE(TAG, "provisioning partition oecprov missing (README)");
+        SHOW(false, "not provisioned");
         return;
     }
     oecm_esp_config pc = {
@@ -196,16 +215,20 @@ void app_main(void) {
 #if CONFIG_DEMO_CONSOLE
     xTaskCreate(console_task, "console", 2560, NULL, 5, NULL);
 #endif
+    SHOW(false, "Wi-Fi ...");
     net_events = xEventGroupCreate();
     ESP_ERROR_CHECK(esp_netif_init());
     ESP_ERROR_CHECK(esp_event_loop_create_default());
     e = net_start(prov);
     nvs_close(prov);
-    if (e != ESP_OK)
+    if (e != ESP_OK) {
+        SHOW(false, "Wi-Fi not provisioned");
         return;
+    }
     xEventGroupWaitBits(net_events, 1, pdFALSE, pdTRUE, portMAX_DELAY);
     esp_sntp_config_t sntp = ESP_NETIF_SNTP_DEFAULT_CONFIG(ntp ? ntp : "pool.ntp.org");
     esp_netif_sntp_init(&sntp);
+    SHOW(false, "time sync ...");
     while (time(NULL) < TIME_PLAUSIBLE) {
         ESP_LOGI(TAG, "waiting for the time");
         esp_netif_sntp_sync_wait(pdMS_TO_TICKS(2000));
@@ -238,6 +261,7 @@ void app_main(void) {
     e = oecm_esp_init(&pc, &port, &pal);
     if (e != ESP_OK) {
         ESP_LOGE(TAG, "oecm_esp_init: %s (provisioning uri, ca, user or cert)", esp_err_to_name(e));
+        SHOW(false, "broker not provisioned");
         return;
     }
     if (level >= 2)
@@ -251,8 +275,10 @@ void app_main(void) {
         oe = oecm_start(&dev);
     if (oe != OECM_OK) {
         ESP_LOGE(TAG, "oecm: %s", oecm_err_str(oe));
+        SHOW(false, "OEC start failed");
         return;
     }
+    SHOW(false, address);
     ESP_LOGI(TAG, "device %s (Level %u), broker %s", oecm_identification_link(&dev), level, pc.uri);
 
     int64_t next_tick = 0;
@@ -263,10 +289,12 @@ void app_main(void) {
         if (atomic_load(&stop_requested)) {
             oe = oecm_stop(&dev);
             printf("oecm: stopped (%s)\n", oecm_err_str(oe));
+            SHOW(false, "stopped");
             fflush(stdout);
             for (;;)
                 vTaskDelay(portMAX_DELAY);
         }
+        SHOW(oecm_connected(&dev), address);
         int64_t now = esp_timer_get_time() / 1000;
         if (level >= 2 && now >= next_tick) { /* the sensor task reads at its interval */
             climate_tick();

@@ -4,7 +4,10 @@
 # (the component oecm of sdk/micro); fetches esp-mqtt from the ESP Component
 # Registry on the first build (dependencies.lock).
 #
-#   build.sh [esp32|esp32s3 ...]   (default: both)
+#   build.sh [esp32|esp32s3|esp32s3-lcd147 ...]   (default: all three)
+#
+# esp32s3-lcd147: the ESP32-S3-LCD-1.47 board with display and RGB LED
+# (sdkconfig.lcd147 on top of sdkconfig.defaults).
 #
 # Output: target/<variant>/ (oec_smart_sensor_dht22.bin, flash_args,
 # sdkconfig); flash with
@@ -20,10 +23,12 @@ if [ ! -d "$here/../../sdk/micro/port/esp-idf/oecm" ]; then
     exit 2
 fi
 variants=("$@")
-[ ${#variants[@]} -gt 0 ] || variants=(esp32 esp32s3)
+[ ${#variants[@]} -gt 0 ] || variants=(esp32 esp32s3 esp32s3-lcd147)
 for v in "${variants[@]}"; do
+    target="$v" defaults="sdkconfig.defaults"
     case "$v" in
     esp32 | esp32s3) ;;
+    esp32s3-lcd147) target=esp32s3 defaults="sdkconfig.defaults;sdkconfig.lcd147" ;;
     *)
         echo "build.sh: unknown variant $v" >&2
         exit 2
@@ -32,7 +37,7 @@ for v in "${variants[@]}"; do
     b="$here/target/$v"
     mkdir -p "$b"
     echo "== $v → $b"
-    idf.py -C "$here" -B "$b" -D SDKCONFIG="$b/sdkconfig" -D SDKCONFIG_DEFAULTS=sdkconfig.defaults \
-        -D IDF_TARGET="$v" build
+    idf.py -C "$here" -B "$b" -D SDKCONFIG="$b/sdkconfig" -D SDKCONFIG_DEFAULTS="$defaults" \
+        -D IDF_TARGET="$target" build
     idf.py -C "$here" -B "$b" -D SDKCONFIG="$b/sdkconfig" size
 done
