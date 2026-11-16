@@ -2,7 +2,8 @@
  *
  *   header      the Label of the sensor, a dot green (online) or red
  *   temperature large, in the colour of the temperature
- *   scale       the colour scale from the cold to the hot end with a marker
+ *   scale       the colour scale from the cold to the hot end, a red field
+ *               for out of range (above the hot end), a marker
  *   humidity    large, sky blue
  *   footer      the Health and the address (or the start-up phase) */
 #include <stdio.h>
@@ -21,11 +22,16 @@
 #define SKY RGB565(110, 190, 255)
 #define GREEN RGB565(40, 200, 80)
 #define RED RGB565(235, 45, 45)
+#define YELLOW RGB565(255, 210, 0)
 
 #define SCALE_X 10
 #define SCALE_W 300
 #define SCALE_Y 92
 #define SCALE_H 8
+#define OUT_W 30                         /* the red field: above the hot end */
+#define RANGE_W (SCALE_W - OUT_W - 4)    /* the range, cold … hot end */
+#define HUE_COLD 2400                    /* blue */
+#define HUE_HOT 600                      /* yellow */
 #define VALUE_RIGHT 222
 #define UNIT_X 232
 
@@ -128,7 +134,7 @@ static int heat_position(int t10, int lo, int hi) {
 }
 
 void screen_heat(int t10, int cold10, int hot10, uint8_t rgb[3]) {
-    hue(2400 - 2400 * heat_position(t10, cold10, hot10) / 1000, rgb);
+    hue(t10 > hot10 ? 0 : HUE_COLD - (HUE_COLD - HUE_HOT) * heat_position(t10, cold10, hot10) / 1000, rgb);
 }
 
 static void tenths(char *out, size_t cap, int v10) {
@@ -147,7 +153,7 @@ static void scale_end(char *out, size_t cap, int v10) {
 
 void screen_render(const screen_state *s, int y0, int rows, uint16_t *px) {
     const band b = {.px = px, .y0 = y0, .y1 = y0 + rows};
-    bool valid = s->reading && !s->failure;
+    bool valid = s->reading && s->health != OECM_HEALTH_FAILURE;
     char t[16];
 
     fill(&b, 0, y0, SCREEN_W, rows, BLACK);
@@ -174,19 +180,22 @@ void screen_render(const screen_state *s, int y0, int rows, uint16_t *px) {
     text_right(&b, VALUE_RIGHT, 40, 6, heat, t);
     text(&b, UNIT_X, 40, 3, heat, FONT_DEGREE "C");
 
-    for (int x = 0; x < SCALE_W; x++) {
-        hue(2400 - 2400 * x / (SCALE_W - 1), rgb);
+    for (int x = 0; x < RANGE_W; x++) {
+        hue(HUE_COLD - (HUE_COLD - HUE_HOT) * x / (RANGE_W - 1), rgb);
         fill(&b, SCALE_X + x, SCALE_Y, 1, SCALE_H, RGB565(rgb[0], rgb[1], rgb[2]));
     }
+    hue(0, rgb);
+    fill(&b, SCALE_X + SCALE_W - OUT_W, SCALE_Y, OUT_W, SCALE_H, RGB565(rgb[0], rgb[1], rgb[2]));
     if (valid) {
-        int mx = SCALE_X + heat_position(s->t10, s->cold10, s->hot10) * (SCALE_W - 1) / 1000;
+        int mx = s->t10 > s->hot10 ? SCALE_X + SCALE_W - OUT_W / 2
+                                   : SCALE_X + heat_position(s->t10, s->cold10, s->hot10) * (RANGE_W - 1) / 1000;
         fill(&b, mx - 2, SCALE_Y - 5, 5, SCALE_H + 10, BLACK);
         fill(&b, mx - 1, SCALE_Y - 4, 3, SCALE_H + 8, WHITE);
     }
     scale_end(t, sizeof t, s->cold10);
     text(&b, SCALE_X, SCALE_Y + SCALE_H + 5, 1, LIGHT, t);
     scale_end(t, sizeof t, s->hot10);
-    text_right(&b, SCALE_X + SCALE_W, SCALE_Y + SCALE_H + 5, 1, LIGHT, t);
+    text_right(&b, SCALE_X + RANGE_W, SCALE_Y + SCALE_H + 5, 1, LIGHT, t);
 
     if (s->reading)
         tenths(t, sizeof t, s->h10);
@@ -196,10 +205,16 @@ void screen_render(const screen_state *s, int y0, int rows, uint16_t *px) {
     text_right(&b, VALUE_RIGHT, 118, 4, hum, t);
     text(&b, UNIT_X, 125, 3, hum, "%");
 
-    const char *health = !s->reading ? (s->failure ? "Health FAILURE" : "no reading yet")
-                         : s->failure ? "Health FAILURE"
-                                      : "Health NORMAL";
-    disc(&b, 14, 161, 6, s->failure ? RED : s->reading ? GREEN : GREY);
+    /* the Health in words, the dot in its NE107 colour (MG 8.3.2, Table 13) */
+    const char *health = "no reading yet";
+    uint16_t dot = GREY;
+    if (s->health == OECM_HEALTH_FAILURE)
+        health = "Failure", dot = RED;
+    else if (s->reading && s->health == OECM_HEALTH_OFF_SPEC)
+        health = "Off spec", dot = YELLOW;
+    else if (s->reading)
+        health = "Normal", dot = GREEN;
+    disc(&b, 14, 161, 6, dot);
     text(&b, 28, 154, 2, WHITE, health);
     text_right(&b, SCREEN_W - 8, 158, 1, LIGHT, s->status);
 }

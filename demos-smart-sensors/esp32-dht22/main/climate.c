@@ -27,6 +27,8 @@
 
 #define DHT22_GPIO ((gpio_num_t)CONFIG_DEMO_DHT22_GPIO)
 #define FAILURES_FOR_HEALTH 3
+#define OFF_SPEC_SCORE 50
+#define FAILURE_SCORE 10 /* not 0: that means offline (MG 6.3.5) */
 #define INTERVAL_DEFAULT 10u
 #define INTERVAL_MIN 2u
 
@@ -85,12 +87,12 @@ static char brightness[8] = STR(CONFIG_DEMO_LED_BRIGHTNESS);
 
 static const oecm_cfg_object scale[] = {
     {.key = "ColdTemperature", .name = "Cold end",
-     .description = "Temperature shown blue, at the left end of the scale, and below",
+     .description = "Lower end of the range: shown blue, at the left end of the scale, and below",
      .type = OECM_CFG_NUMBER, .value = cold, .cap = sizeof cold,
      .default_value = STR(CONFIG_DEMO_COLD_C), .unit = "°C", .mandatory = true, .min = "-40",
      .max = "80"},
     {.key = "HotTemperature", .name = "Hot end",
-     .description = "Temperature shown red, at the right end of the scale, and above",
+     .description = "Upper end of the range: shown yellow; above it red and the Health OFF_SPEC_3",
      .type = OECM_CFG_NUMBER, .value = hot, .cap = sizeof hot,
      .default_value = STR(CONFIG_DEMO_HOT_C), .unit = "°C", .mandatory = true, .min = "-40",
      .max = "80"},
@@ -107,7 +109,7 @@ static const oecm_cfg_object led[] = {
 static const oecm_cfg_group display_groups[] = {
     {.key = "Scale",
      .name = "Temperature scale",
-     .description = "The colour runs from blue (cold end) over green and yellow to red (hot end)",
+     .description = "The colour runs from blue (cold end) over green to yellow (hot end); above the hot end red (out of range)",
      .objects = scale,
      .count = sizeof scale / sizeof scale[0]},
     {.key = "Led", .name = "RGB LED", .objects = led, .count = sizeof led / sizeof led[0]},
@@ -139,7 +141,7 @@ static atomic_int last_t10, last_h10; /* tenths of °C and % */
 static atomic_uint reading_seq, failures;
 /* Device task only. */
 static unsigned seen_seq;
-static bool failed;
+static oecm_health health_set = OECM_HEALTH_NORMAL;
 /* The Label for a local display, a copy taken on the device task. */
 static portMUX_TYPE label_lock = portMUX_INITIALIZER_UNLOCKED;
 static char label_copy[sizeof label] = "DHT22 climate sensor";
@@ -363,31 +365,46 @@ void climate_setup(oecm_config *cfg, oecm_device *dev) {
     }
 }
 
+/* The Health from the latest readings, from any task: FAILURE_1 after three
+ * failed rounds of readings in a row (e.g. a broken wire, no valid signal), with a
+ * display OFF_SPEC_3 above the hot end of the scale, else NORMAL_0. */
+static oecm_health health_now(int *score) {
+    *score = 100;
+    if (atomic_load(&failures) >= FAILURES_FOR_HEALTH) {
+        *score = FAILURE_SCORE;
+        return OECM_HEALTH_FAILURE;
+    }
+#if CONFIG_DEMO_LCD147
+    if (atomic_load(&reading_seq) && atomic_load(&last_t10) > atomic_load(&hot10)) {
+        *score = OFF_SPEC_SCORE;
+        return OECM_HEALTH_OFF_SPEC;
+    }
+#endif
+    return OECM_HEALTH_NORMAL;
+}
+
 void climate_tick(void) {
     if (!device)
         return;
-    if (!failed && atomic_load(&failures) >= FAILURES_FOR_HEALTH) {
-        failed = true;
-        (void)oecm_set_health(device, OECM_HEALTH_FAILURE, 0);
-    }
     unsigned seq = atomic_load(&reading_seq);
-    if (seq == seen_seq)
-        return;
-    seen_seq = seq;
-    if (failed) {
-        failed = false;
-        (void)oecm_set_health(device, OECM_HEALTH_NORMAL, 100);
+    if (seq != seen_seq) {
+        seen_seq = seq;
+        double t = atomic_load(&last_t10) / 10.0, h = atomic_load(&last_h10) / 10.0;
+        if (t != temperature || h != humidity) {
+            temperature = t;
+            humidity = h;
+            (void)oecm_data_changed(device, 0);
+        }
     }
-    double t = atomic_load(&last_t10) / 10.0, h = atomic_load(&last_h10) / 10.0;
-    if (t == temperature && h == humidity)
-        return;
-    temperature = t;
-    humidity = h;
-    (void)oecm_data_changed(device, 0);
+    int score;
+    oecm_health health = health_now(&score);
+    if (health != health_set && oecm_set_health(device, health, score) == OECM_OK)
+        health_set = health;
 }
 
-bool climate_latest(int *t10, int *h10, bool *failure) {
-    *failure = atomic_load(&failures) >= FAILURES_FOR_HEALTH;
+bool climate_latest(int *t10, int *h10, oecm_health *health) {
+    int score;
+    *health = health_now(&score);
     if (atomic_load(&reading_seq) == 0)
         return false;
     *t10 = atomic_load(&last_t10);

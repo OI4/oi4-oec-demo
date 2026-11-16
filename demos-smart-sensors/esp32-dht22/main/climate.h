@@ -20,16 +20,18 @@ void climate_start(void);
  * sensor reports to. Waits up to 5 s for the first reading. */
 void climate_setup(oecm_config *cfg, oecm_device *dev);
 /* Takes over the latest reading: marks the Data changed and sets the
- * Health after three failed readings in a row and on recovery. */
+ * Health on a change: FAILURE_1 (score 10, not 0: still online, MG 6.3.5)
+ * after three failed rounds of readings in a row (e.g. a broken wire), with a display OFF_SPEC_3 while
+ * the temperature is above the hot end of the scale, else NORMAL_0. */
 void climate_tick(void);
 /* For a local display, from any task: the latest good reading (false
- * before the first one) and whether the Health is FAILURE_1 (three failed
- * rounds of readings in a row). */
-bool climate_latest(int *t10, int *h10, bool *failure);
+ * before the first one) and the Health of climate_tick. */
+bool climate_latest(int *t10, int *h10, oecm_health *health);
 /* For a local display, from any task: a copy of the Label of the Config. */
 void climate_label(char *out, size_t cap);
 #if CONFIG_DEMO_LCD147
-/* For the display, from any task: the ends of the temperature scale in
+/* For the display, from any task: the ends of the temperature scale (the
+ * range; above it the Health is OFF_SPEC_3) in
  * tenths of °C, cold10 < hot10 (the lower of ColdTemperature and
  * HotTemperature is the cold end; equal values span 1 °C), and the
  * brightness of the RGB LED (0 … 255). */

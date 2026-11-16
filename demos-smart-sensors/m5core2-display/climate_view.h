@@ -73,7 +73,9 @@ void view_scale(int *cold10, int *hot10);
 /* Position of a temperature (°C) on the scale, 0 (cold end) … 1000. */
 int view_heat_position(double t);
 /* Hue in tenths of a degree, 0 (red) … 2400 (blue), full saturation: the
- * colour of the scale at position p is view_hue(2400 - 2400 * p / 1000). */
+ * colour of the scale at position p is view_hue(2400 - 1800 * p / 1000),
+ * blue at the cold end to yellow at the hot end; above the hot end (out of
+ * range) view_hue(0), red. */
 void view_hue(int h, uint8_t rgb[3]);
 /* Changes with every received value and every accepted Set Config. */
 uint32_t view_revision(void);

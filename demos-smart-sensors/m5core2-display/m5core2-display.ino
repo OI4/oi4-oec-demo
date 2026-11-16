@@ -103,17 +103,18 @@ static const uint16_t CARD = 0x10A2;   // background of the cards
 static const uint16_t EDGE = 0x31A6;   // guide lines, inactive page dots
 static const uint16_t MUTED = 0x9CF3;  // small labels
 
+/* The NE107 colour of a Health state (MG 8.3.2, Table 13). */
 static uint16_t healthColor(const char *h) {
   if (strcmp(h, "NORMAL_0") == 0)
     return TFT_GREEN;
   if (strcmp(h, "FAILURE_1") == 0)
     return TFT_RED;
   if (strcmp(h, "CHECK_FUNCTION_2") == 0)
-    return TFT_CYAN;
-  if (strcmp(h, "OFF_SPEC_3") == 0)
     return TFT_ORANGE;
-  if (strcmp(h, "MAINTENANCE_REQUIRED_4") == 0)
+  if (strcmp(h, "OFF_SPEC_3") == 0)
     return TFT_YELLOW;
+  if (strcmp(h, "MAINTENANCE_REQUIRED_4") == 0)
+    return 0x2BDF;  // a blue that stands out on the dark card
   return TFT_DARKGREY;
 }
 
@@ -142,9 +143,16 @@ static uint16_t hueColor(int h) {
   return M5.Display.color565(rgb[0], rgb[1], rgb[2]);
 }
 
-/* The colour of the scale at a temperature in tenths of °C. */
+static const int HUE_COLD = 2400, HUE_HOT = 600;  // blue, yellow
+
+/* The colour of the scale at a temperature in tenths of °C: blue … yellow
+ * within the range, red above it. */
 static uint16_t heatColor(int t10) {
-  return hueColor(2400 - 2400 * view_heat_position(t10 / 10.0) / 1000);
+  int cold, hot;
+  view_scale(&cold, &hot);
+  if (t10 > hot)
+    return hueColor(0);
+  return hueColor(HUE_COLD - (HUE_COLD - HUE_HOT) * view_heat_position(t10 / 10.0) / 1000);
 }
 
 /* c mixed with the card background, pct % of c. */
@@ -317,7 +325,8 @@ static int trend(const view_sensor *s) {
 }
 
 /* The temperature, its trend and below it the colour scale, as wide as the
- * number, with a knob at the temperature and the ends of the scale. */
+ * number – the range and a red field for out of range – with a knob at the
+ * temperature and the ends of the range. */
 static void temperature(const view_sensor *s, bool stale) {
   const int left = 162, right = 312;
   int t10 = (int)lround(s->temperature * 10);
@@ -337,23 +346,27 @@ static void temperature(const view_sensor *s, bool stale) {
   int dir = trend(s);
   if (dir != 2 && !stale)
     arrow(ux + 15, 110, 7, dir, dir ? color : MUTED);
-  const int by = 132, bh = 8, r = bh / 2;
-  for (int i = 0; i < tw; i++) {
-    int d = i < tw - 1 - i ? i : tw - 1 - i;
-    int inset = d < r ? r - (int)lround(sqrt((double)r * r - (r - d - 0.5) * (r - d - 0.5))) : 0;
-    uint16_t c = hueColor(2400 - 2400 * i / (tw - 1));
-    canvas.drawFastVLine(xs + i, by + inset, bh - 2 * inset, stale ? fade(c, 35) : c);
-  }
+  const int by = 132, bh = 8, r = bh / 2, outW = 14, rangeW = tw - outW - 4;
+  auto pill = [&](int x0, int w, bool range) {  // a bar with round ends
+    for (int i = 0; i < w; i++) {
+      int d = i < w - 1 - i ? i : w - 1 - i;
+      int inset = d < r ? r - (int)lround(sqrt((double)r * r - (r - d - 0.5) * (r - d - 0.5))) : 0;
+      uint16_t c = hueColor(range ? HUE_COLD - (HUE_COLD - HUE_HOT) * i / (w - 1) : 0);
+      canvas.drawFastVLine(x0 + i, by + inset, bh - 2 * inset, stale ? fade(c, 35) : c);
+    }
+  };
+  pill(xs, rangeW, true);
+  pill(xs + tw - outW, outW, false);
+  int cold, hot;
+  view_scale(&cold, &hot);
   if (!stale) {
-    int mx = xs + view_heat_position(s->temperature) * (tw - 1) / 1000;
+    int mx = t10 > hot ? xs + tw - outW / 2 : xs + view_heat_position(s->temperature) * (rangeW - 1) / 1000;
     canvas.fillSmoothCircle(mx, by + r, 8, TFT_BLACK);
     canvas.fillSmoothCircle(mx, by + r, 7, TFT_WHITE);
     canvas.fillSmoothCircle(mx, by + r, 4, color);
   }
-  int cold, hot;
-  view_scale(&cold, &hot);
   withDegree(tenths(cold, true), xs, by + bh + 6, false, MUTED);
-  withDegree(tenths(hot, true), xs + tw, by + bh + 6, true, MUTED);
+  withDegree(tenths(hot, true), xs + rangeW, by + bh + 6, true, MUTED);
 }
 
 /* Dew point (Magnus formula, °C) of a temperature and relative humidity. */

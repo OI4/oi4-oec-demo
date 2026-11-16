@@ -23,7 +23,9 @@ The display shows one sensor:
 
 - the Label (or the SerialNumber; in a smaller font or shortened when it
   is long) and a chip with its Health in plain words (`NORMAL_0` →
-  "Normal") and the HealthScore;
+  "Normal") and the HealthScore, the dot in the NE107 colour of the
+  Health (MG 8.3.2: normal green, failure red, check function orange, off
+  spec yellow, maintenance required blue);
 - a graph of the temperature over the last `History` minutes: the curve
   in the colour of the scale, the area below it fading into the card, the
   highest and the lowest value; the latest point flashes and sends out a
@@ -31,8 +33,9 @@ The display shows one sensor:
   sensor in RAM, so the graph starts empty after a restart;
 - the temperature with a trend arrow (up/down: at least 0.3 °C within the
   last five minutes, grey: steady) and below it a colour scale as wide as
-  the number, from `ColdTemperature` (blue) over green and yellow to
-  `HotTemperature` (red), with a knob at the temperature – the same
+  the number, from `ColdTemperature` (blue) over green to
+  `HotTemperature` (yellow) and a red field for out of range above it,
+  with a knob at the temperature (in the red field above the range) – the same
   colours as the display and the RGB LED of the ESP32-S3-LCD-1.47 variant
   of the DHT22 demo; the lower of the two temperatures is the cold end,
   equal values span 1 °C;
@@ -107,3 +110,7 @@ With the graph (C-116, 2026-11-28): `Set` of `History` `Good` and in
 effect at once; with a simulated second sensor (Climate from
 `mosquitto_pub`) the page dots, button A, tap and swipe in both directions
 change the sensor; D7 L3 without the proxy 38 pass, 0 fail, 17 skip.
+With the out of range scale (C-117, 2026-11-28): above `HotTemperature`
+the temperature, the curve and the knob red, the S3 chip "Off spec 50" in
+yellow and, with the DHT22 wire pulled, "Failure 10" in red; D7 L3 without
+the proxy 39 pass, 0 fail, 16 skip.

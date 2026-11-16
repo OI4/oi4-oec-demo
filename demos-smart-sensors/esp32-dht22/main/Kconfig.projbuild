@@ -38,7 +38,7 @@ menu "OEC smart sensor demo (DHT22)"
         default n
 
     config DEMO_COLD_C
-        int "Temperature shown blue (degrees Celsius, and below)"
+        int "Lower end of the range, shown blue (degrees Celsius, and below)"
         depends on DEMO_LCD147
         range -40 79
         default 15
@@ -46,12 +46,14 @@ menu "OEC smart sensor demo (DHT22)"
             The default of ColdTemperature in the Config context "Display".
 
     config DEMO_HOT_C
-        int "Temperature shown red (degrees Celsius, and above; above DEMO_COLD_C)"
+        int "Upper end of the range, shown yellow (degrees Celsius; above DEMO_COLD_C)"
         depends on DEMO_LCD147
         range -39 80
         default 30
         help
             The default of HotTemperature in the Config context "Display".
+            Above it the temperature is shown red and the Health is
+            OFF_SPEC_3 (out of range).
 
     config DEMO_LED_BRIGHTNESS
         int "Brightness of the RGB LED (1 ... 255)"

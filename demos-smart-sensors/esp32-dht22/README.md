@@ -6,7 +6,8 @@ as an OEC smart device, on the [OEC Micro SDK](../../sdk/micro/README.md)
 sensor instead of the simulated one and Wi-Fi only. On the Waveshare
 ESP32-S3-LCD-1.47(B) board (variant `esp32s3-lcd147`) it also shows the
 readings on the display and the temperature as the colour of the RGB LED,
-blue (cold) over green and yellow to red (very warm). Guide with the dev
+blue (cold) over green to yellow (warm) and red above the range
+(out of range, Health `OFF_SPEC_3`). Guide with the dev
 environment, the registry, the config service, the logger and D7:
 [Smart sensor on an ESP32](https://oi4.github.io/oi4-oec-documentation/docs/community/demos/smart-sensor).
 
@@ -17,7 +18,7 @@ environment, the registry, the config service, the logger and D7:
 | Messaging level | 3 (provisioning key `level`, default `CONFIG_DEMO_LEVEL`) |
 | Data | `Climate`: Temperature (°C, −40 … 80), Humidity (%, 0 … 100), Label; read-only |
 | Config | `Sensor`/`General`: Interval 2 … 3600 s (default 10), Label (32 characters); variant `esp32s3-lcd147` also `Display`/`Scale`: ColdTemperature, HotTemperature (−40 … 80 °C, default `DEMO_COLD_C`/`DEMO_HOT_C`), `Display`/`Led`: Brightness 0 (off) … 255 (default `DEMO_LED_BRIGHTNESS`); stored in NVS (namespace `demo.<context>`), kept across a restart |
-| Health | `NORMAL_0`/100; `FAILURE_1`/0 after three failed rounds of readings in a row, back on the next good reading |
+| Health | `NORMAL_0`/100; variant `esp32s3-lcd147` `OFF_SPEC_3`/50 while the temperature is above `HotTemperature`; `FAILURE_1`/10 after three failed rounds of readings in a row (e.g. a broken wire; HealthScore 10, not 0, so that the device stays online, MG 6.3.5), back on the next good reading |
 
 ## Files
 
@@ -50,12 +51,16 @@ WS2812-type LED that takes its colour bytes in the order R, G, B) are
 on the board. Only the backlight differs: GPIO 46 on the 1.47B (default),
 GPIO 48 on the 1.47 (`DEMO_LCD147_BL_GPIO`). The display shows the Label,
 the temperature in the colour of the scale from `ColdTemperature` (blue)
-over green and yellow to `HotTemperature` (red) with a marker at the
-temperature, the humidity, the Health and the connection to the broker
+over green to `HotTemperature` (yellow) and a red field for out of range
+above it, with a marker at the temperature, the humidity, the Health in
+words with its NE107 colour (MG 8.3.2: "Normal" green, "Off spec" yellow,
+"Failure" red) and the connection to the broker
 with the address of the board (or the step of the start up). The RGB LED
 has the colour of the scale at the marker (gamma-corrected, so that it
 matches the display) with the `Brightness` of the Config; it is off
-without a valid reading. The Config context `Display` sets the ends of
+without a valid reading and on `FAILURE_1`. Above `HotTemperature` the
+display, the LED and the Health agree: red and `OFF_SPEC_3` (no
+hysteresis; exactly at `HotTemperature` yellow and `NORMAL_0`). The Config context `Display` sets the ends of
 the scale and the brightness of the LED; the lower of the two
 temperatures is the cold end, equal values span 1 °C.
 
@@ -128,4 +133,9 @@ Config context `Display` (C-115, 2026-11-28): `Set` of the scale and of the
 brightness `Good` and in effect at once, a value out of range
 `BadOutOfRange`, the values kept across a reset, the LED red at and above
 `HotTemperature` and green in the middle of the scale, D7 L3 without the
-proxy 39 pass, 0 fail, 16 skip.
+proxy 39 pass, 0 fail, 16 skip. Out of range and failure (C-117,
+2026-11-28): with `HotTemperature` 20 °C at 22.5 °C the display and the
+LED red, Health `OFF_SPEC_3`/50, back to `NORMAL_0`/100 with 30 °C; the
+data wire of the DHT22 pulled: `FAILURE_1`/10 on the bus, "Failure" on the
+display, the LED off, back to `NORMAL_0`/100 after plugging it in; D7 L3
+without the proxy 39 pass, 0 fail, 16 skip.

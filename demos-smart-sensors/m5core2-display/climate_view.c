@@ -75,11 +75,11 @@ static const oecm_cfg_object general[] = {
 
 static const oecm_cfg_object scale[] = {
     {.key = "ColdTemperature", .name = "Cold end",
-     .description = "Temperature shown blue, at the left end of the scale, and below",
+     .description = "Lower end of the range: shown blue, at the left end of the scale, and below",
      .type = OECM_CFG_NUMBER, .value = cold, .cap = sizeof cold, .default_value = "15",
      .unit = "°C", .mandatory = true, .min = "-40", .max = "80"},
     {.key = "HotTemperature", .name = "Hot end",
-     .description = "Temperature shown red, at the right end of the scale, and above",
+     .description = "Upper end of the range: shown yellow; above it red (out of range)",
      .type = OECM_CFG_NUMBER, .value = hot, .cap = sizeof hot, .default_value = "30",
      .unit = "°C", .mandatory = true, .min = "-40", .max = "80"},
 };
@@ -91,7 +91,7 @@ static const oecm_cfg_group groups[] = {
      .count = sizeof general / sizeof general[0]},
     {.key = "Scale",
      .name = "Temperature scale",
-     .description = "The colour runs from blue (cold end) over green and yellow to red (hot end)",
+     .description = "The colour runs from blue (cold end) over green to yellow (hot end); above the hot end red (out of range)",
      .objects = scale,
      .count = sizeof scale / sizeof scale[0]},
 };

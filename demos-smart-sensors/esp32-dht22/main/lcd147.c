@@ -172,7 +172,7 @@ static void display_task(void *arg) {
         screen_state s;
         unsigned level;
         memset(&s, 0, sizeof s);
-        s.reading = climate_latest(&s.t10, &s.h10, &s.failure);
+        s.reading = climate_latest(&s.t10, &s.h10, &s.health);
         climate_display(&s.cold10, &s.hot10, &level);
         climate_label(s.label, sizeof s.label);
         taskENTER_CRITICAL(&lock);
@@ -189,7 +189,7 @@ static void display_task(void *arg) {
             last = s;
         }
         uint8_t rgb[3] = {0, 0, 0}; /* off without a valid reading */
-        if (s.reading && !s.failure)
+        if (s.reading && s.health != OECM_HEALTH_FAILURE)
             screen_heat(s.t10, s.cold10, s.hot10, rgb);
         if (first || level != last_level || memcmp(rgb, last_led, sizeof rgb) != 0) {
             led_set(rgb, level);
