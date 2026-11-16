@@ -3,9 +3,14 @@
  * The single-wire protocol needs microsecond timing: a task of its own reads
  * the sensor inside a critical section (about 5 ms) on the second core if
  * there is one, at most every 2 s; Wi-Fi stays on core 0. The device loop
- * only takes over the result (climate_tick). */
+ * only takes over the result (climate_tick).
+ *
+ * The Config values are kept in the default NVS partition, one namespace
+ * per context ("demo.<context>"), and survive a restart. */
+#include <math.h>
 #include <stdatomic.h>
 #include <stdbool.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -15,6 +20,7 @@
 #include "esp_timer.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+#include "nvs.h"
 #include "sdkconfig.h"
 
 #include "climate.h"
@@ -67,13 +73,63 @@ static const oecm_cfg_group groups[] = {{
     .count = sizeof general / sizeof general[0],
 }};
 
-static const oecm_cfg_context contexts[] = {{
-    .name = "Sensor",
-    .title = "Sensor",
-    .description = "Settings of the DHT22 sensor",
-    .groups = groups,
-    .count = 1,
-}};
+#if CONFIG_DEMO_LCD147
+#define STR_(x) #x
+#define STR(x) STR_(x)
+
+/* The ends of the temperature scale of the display and of the colour of
+ * the RGB LED (Kconfig: the defaults). */
+static char cold[8] = STR(CONFIG_DEMO_COLD_C);
+static char hot[8] = STR(CONFIG_DEMO_HOT_C);
+static char brightness[8] = STR(CONFIG_DEMO_LED_BRIGHTNESS);
+
+static const oecm_cfg_object scale[] = {
+    {.key = "ColdTemperature", .name = "Cold end",
+     .description = "Temperature shown blue, at the left end of the scale, and below",
+     .type = OECM_CFG_NUMBER, .value = cold, .cap = sizeof cold,
+     .default_value = STR(CONFIG_DEMO_COLD_C), .unit = "°C", .mandatory = true, .min = "-40",
+     .max = "80"},
+    {.key = "HotTemperature", .name = "Hot end",
+     .description = "Temperature shown red, at the right end of the scale, and above",
+     .type = OECM_CFG_NUMBER, .value = hot, .cap = sizeof hot,
+     .default_value = STR(CONFIG_DEMO_HOT_C), .unit = "°C", .mandatory = true, .min = "-40",
+     .max = "80"},
+};
+
+static const oecm_cfg_object led[] = {
+    {.key = "Brightness", .name = "Brightness",
+     .description = "Brightness of the RGB LED, 0 (off) … 255", .type = OECM_CFG_NUMBER,
+     .value = brightness, .cap = sizeof brightness,
+     .default_value = STR(CONFIG_DEMO_LED_BRIGHTNESS), .mandatory = true, .min = "0",
+     .max = "255"},
+};
+
+static const oecm_cfg_group display_groups[] = {
+    {.key = "Scale",
+     .name = "Temperature scale",
+     .description = "The colour runs from blue (cold end) over green and yellow to red (hot end)",
+     .objects = scale,
+     .count = sizeof scale / sizeof scale[0]},
+    {.key = "Led", .name = "RGB LED", .objects = led, .count = sizeof led / sizeof led[0]},
+};
+#endif
+
+enum { CTX_SENSOR, CTX_DISPLAY };
+
+static const oecm_cfg_context contexts[] = {
+    [CTX_SENSOR] = {.name = "Sensor",
+                    .title = "Sensor",
+                    .description = "Settings of the DHT22 sensor",
+                    .groups = groups,
+                    .count = 1},
+#if CONFIG_DEMO_LCD147
+    [CTX_DISPLAY] = {.name = "Display",
+                     .title = "Display",
+                     .description = "Settings of the display and the RGB LED",
+                     .groups = display_groups,
+                     .count = sizeof display_groups / sizeof display_groups[0]},
+#endif
+};
 
 static oecm_device *device;
 static TaskHandle_t sensor;
@@ -101,10 +157,104 @@ static unsigned parse_interval(void) {
     return s < INTERVAL_MIN ? INTERVAL_DEFAULT : s;
 }
 
+/* A Number value within its Min and Max (NAN if not). */
+static double number(const oecm_cfg_object *o, const char *v) {
+    char *end;
+    double x = strtod(v, &end);
+    if (end == v || *end || !isfinite(x) || (o->min && x < strtod(o->min, NULL)) ||
+        (o->max && x > strtod(o->max, NULL)))
+        return NAN;
+    return x;
+}
+
+static void namespace_of(size_t context, char ns[NVS_NS_NAME_MAX_SIZE]) {
+    snprintf(ns, NVS_NS_NAME_MAX_SIZE, "demo.%s", contexts[context].name);
+}
+
+/* Takes over the stored values of the contexts that are still valid. */
+static void settings_load(void) {
+    for (size_t c = 0; c < sizeof contexts / sizeof contexts[0]; c++) {
+        char ns[NVS_NS_NAME_MAX_SIZE];
+        nvs_handle_t h;
+        namespace_of(c, ns);
+        if (nvs_open(ns, NVS_READONLY, &h) != ESP_OK)
+            continue; /* nothing stored yet */
+        for (size_t g = 0; g < contexts[c].count; g++)
+            for (size_t k = 0; k < contexts[c].groups[g].count; k++) {
+                const oecm_cfg_object *o = &contexts[c].groups[g].objects[k];
+                char v[64];
+                size_t n = sizeof v;
+                if (nvs_get_str(h, o->key, v, &n) != ESP_OK || strlen(v) >= o->cap ||
+                    (o->type == OECM_CFG_NUMBER && v[0] && isnan(number(o, v))))
+                    continue;
+                strcpy(o->value, v);
+            }
+        nvs_close(h);
+    }
+}
+
+static void settings_save(size_t c) {
+    char ns[NVS_NS_NAME_MAX_SIZE];
+    nvs_handle_t h;
+    namespace_of(c, ns);
+    esp_err_t e = nvs_open(ns, NVS_READWRITE, &h);
+    for (size_t g = 0; e == ESP_OK && g < contexts[c].count; g++)
+        for (size_t k = 0; e == ESP_OK && k < contexts[c].groups[g].count; k++) {
+            const oecm_cfg_object *o = &contexts[c].groups[g].objects[k];
+            e = nvs_set_str(h, o->key, o->value);
+        }
+    if (e == ESP_OK)
+        e = nvs_commit(h);
+    if (e != ESP_OK)
+        ESP_LOGW(TAG, "Config %s not stored: %s", contexts[c].name, esp_err_to_name(e));
+    nvs_close(h);
+}
+
+#if CONFIG_DEMO_LCD147
+/* Shared with the display task. */
+static atomic_int cold10 = CONFIG_DEMO_COLD_C * 10, hot10 = CONFIG_DEMO_HOT_C * 10;
+static atomic_uint led_level = CONFIG_DEMO_LED_BRIGHTNESS;
+
+/* A temperature of the scale in tenths of °C; the default if empty. */
+static int tenths_of(const oecm_cfg_object *o) {
+    double x = number(o, o->value);
+    if (isnan(x))
+        x = strtod(o->default_value, NULL);
+    return (int)lround(x * 10);
+}
+
+static void display_apply(void) {
+    int lo = tenths_of(&scale[0]), hi = tenths_of(&scale[1]);
+    if (lo > hi) { /* the scale runs from the lower to the higher value */
+        int t = lo;
+        lo = hi;
+        hi = t;
+    }
+    if (hi == lo)
+        hi = lo + 10; /* at least 1 °C */
+    double b = number(&led[0], brightness);
+    atomic_store(&cold10, lo);
+    atomic_store(&hot10, hi);
+    atomic_store(&led_level, isnan(b) ? CONFIG_DEMO_LED_BRIGHTNESS : (unsigned)lround(b));
+}
+
+void climate_display(int *cold_10, int *hot_10, unsigned *led_brightness) {
+    *cold_10 = atomic_load(&cold10);
+    *hot_10 = atomic_load(&hot10);
+    *led_brightness = atomic_load(&led_level);
+}
+#endif
+
 /* The core has stored the new values of the context (Set). */
 static void on_config(void *ctx, size_t context) {
     (void)ctx;
-    (void)context;
+    settings_save(context);
+#if CONFIG_DEMO_LCD147
+    if (context == CTX_DISPLAY) {
+        display_apply();
+        return;
+    }
+#endif
     unsigned s = parse_interval();
     if (atomic_exchange(&interval_s, s) != s && sensor)
         xTaskNotifyGive(sensor); /* the new interval applies now, not after the old one */
@@ -187,6 +337,12 @@ static void sensor_task(void *arg) {
 }
 
 void climate_start(void) {
+    settings_load();
+    atomic_store(&interval_s, parse_interval());
+    label_publish();
+#if CONFIG_DEMO_LCD147
+    display_apply();
+#endif
     xTaskCreatePinnedToCore(sensor_task, "dht22", 3072, NULL, 10, &sensor, portNUM_PROCESSORS > 1 ? 1 : 0);
 }
 
@@ -195,7 +351,7 @@ void climate_setup(oecm_config *cfg, oecm_device *dev) {
     cfg->data = data;
     cfg->data_count = 1;
     cfg->config = contexts;
-    cfg->config_count = 1;
+    cfg->config_count = sizeof contexts / sizeof contexts[0];
     cfg->on_config = on_config;
     /* The first publication carries a measurement, not 0.0. */
     for (int i = 0; i < 50 && atomic_load(&reading_seq) == 0; i++)

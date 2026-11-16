@@ -18,15 +18,17 @@ typedef struct screen_state {
     bool failure;  /* Health FAILURE_1: three failed rounds in a row */
     bool online;   /* connected to the broker */
     int t10, h10;  /* the latest good reading, tenths of °C and % */
+    int cold10, hot10; /* the ends of the temperature scale, tenths of °C */
     char label[SCREEN_LABEL];
     char status[SCREEN_STATUS]; /* the address or the start-up phase */
 } screen_state;
 
-/* The colour of a temperature: blue at cold_c and below, then cyan, green,
- * yellow, red at hot_c and above (hue 240° … 0°); cold_c < hot_c. */
-void screen_heat(int t10, int cold_c, int hot_c, uint8_t rgb[3]);
+/* The colour of a temperature (all in tenths of °C): blue at cold10 and
+ * below, then cyan, green, yellow, red at hot10 and above (hue 240° … 0°),
+ * the colour of the scale at its marker; cold10 < hot10. */
+void screen_heat(int t10, int cold10, int hot10, uint8_t rgb[3]);
 /* Renders the rows y0 … y0 + rows - 1 of the screen into px (rows *
  * SCREEN_W pixels). */
-void screen_render(const screen_state *s, int cold_c, int hot_c, int y0, int rows, uint16_t *px);
+void screen_render(const screen_state *s, int y0, int rows, uint16_t *px);
 
 #endif

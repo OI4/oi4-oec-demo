@@ -1,7 +1,8 @@
 /* The display and the RGB LED of the ESP32-S3-LCD-1.47 board (Waveshare
  * and compatible boards; CONFIG_DEMO_LCD147): the readings, the Health and
  * the connection on the 1.47" ST7789 display (screen.c), the temperature
- * as the colour of the WS2812 LED below it, blue (cold) … red (hot). */
+ * as the colour of the RGB LED below it: the colour of the scale at its
+ * marker, blue (cold) over green and yellow to red (hot). */
 #ifndef LCD147_H
 #define LCD147_H
 

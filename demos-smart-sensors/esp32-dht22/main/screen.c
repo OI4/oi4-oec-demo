@@ -119,8 +119,7 @@ static void hue(int h, uint8_t rgb[3]) {
 }
 
 /* Position of a temperature on the scale, 0 (cold end) … 1000 (hot end). */
-static int heat_position(int t10, int cold_c, int hot_c) {
-    int lo = cold_c * 10, hi = hot_c * 10;
+static int heat_position(int t10, int lo, int hi) {
     if (t10 <= lo)
         return 0;
     if (t10 >= hi)
@@ -128,15 +127,25 @@ static int heat_position(int t10, int cold_c, int hot_c) {
     return (t10 - lo) * 1000 / (hi - lo);
 }
 
-void screen_heat(int t10, int cold_c, int hot_c, uint8_t rgb[3]) {
-    hue(2400 - 2400 * heat_position(t10, cold_c, hot_c) / 1000, rgb);
+void screen_heat(int t10, int cold10, int hot10, uint8_t rgb[3]) {
+    hue(2400 - 2400 * heat_position(t10, cold10, hot10) / 1000, rgb);
 }
 
 static void tenths(char *out, size_t cap, int v10) {
     snprintf(out, cap, "%s%d.%d", v10 < 0 ? "-" : "", abs(v10) / 10, abs(v10) % 10);
 }
 
-void screen_render(const screen_state *s, int cold_c, int hot_c, int y0, int rows, uint16_t *px) {
+/* An end of the scale: whole degrees without a decimal. */
+static void scale_end(char *out, size_t cap, int v10) {
+    if (v10 % 10 == 0)
+        snprintf(out, cap, "%d" FONT_DEGREE, v10 / 10);
+    else {
+        tenths(out, cap - 2, v10);
+        strcat(out, FONT_DEGREE);
+    }
+}
+
+void screen_render(const screen_state *s, int y0, int rows, uint16_t *px) {
     const band b = {.px = px, .y0 = y0, .y1 = y0 + rows};
     bool valid = s->reading && !s->failure;
     char t[16];
@@ -156,7 +165,7 @@ void screen_render(const screen_state *s, int cold_c, int hot_c, int y0, int row
     disc(&b, SCREEN_W - 16, 15, 7, s->online ? GREEN : RED);
 
     uint8_t rgb[3];
-    screen_heat(s->t10, cold_c, hot_c, rgb);
+    screen_heat(s->t10, s->cold10, s->hot10, rgb);
     uint16_t heat = valid ? RGB565(rgb[0], rgb[1], rgb[2]) : GREY;
     if (s->reading)
         tenths(t, sizeof t, s->t10);
@@ -170,13 +179,13 @@ void screen_render(const screen_state *s, int cold_c, int hot_c, int y0, int row
         fill(&b, SCALE_X + x, SCALE_Y, 1, SCALE_H, RGB565(rgb[0], rgb[1], rgb[2]));
     }
     if (valid) {
-        int mx = SCALE_X + heat_position(s->t10, cold_c, hot_c) * (SCALE_W - 1) / 1000;
+        int mx = SCALE_X + heat_position(s->t10, s->cold10, s->hot10) * (SCALE_W - 1) / 1000;
         fill(&b, mx - 2, SCALE_Y - 5, 5, SCALE_H + 10, BLACK);
         fill(&b, mx - 1, SCALE_Y - 4, 3, SCALE_H + 8, WHITE);
     }
-    snprintf(t, sizeof t, "%d" FONT_DEGREE, cold_c);
+    scale_end(t, sizeof t, s->cold10);
     text(&b, SCALE_X, SCALE_Y + SCALE_H + 5, 1, LIGHT, t);
-    snprintf(t, sizeof t, "%d" FONT_DEGREE, hot_c);
+    scale_end(t, sizeof t, s->hot10);
     text_right(&b, SCALE_X + SCALE_W, SCALE_Y + SCALE_H + 5, 1, LIGHT, t);
 
     if (s->reading)

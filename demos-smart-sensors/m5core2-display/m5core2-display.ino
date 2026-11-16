@@ -3,7 +3,11 @@
  * shows the Temperature, Humidity, Label and Health of the climate sensors
  * of other OTConnector applications (e.g. the ESP32 DHT22 demo), received
  * through consumer subscriptions of the OEC Micro SDK (climate_view.c).
- * Button A or a tap on the screen shows the next sensor.
+ * The temperature has the colour of a scale from blue (cold) over green and
+ * yellow to red (hot). Button A or a tap on the screen shows the next
+ * sensor, the Config Cycle also after a number of seconds. Title, stale
+ * time, brightness, cycle and the ends of the scale are set through the
+ * Config context "Display".
  *
  * Provisioning as the DHT22 demo (README): the NVS partition "oecprov",
  * namespace "oec", strings uri, ca, user + password or cert + key,
@@ -46,6 +50,8 @@ static M5Canvas canvas(&M5.Display);
 static uint32_t drawnRevision = UINT32_MAX;
 static int64_t drawnSecond = -1;
 static bool drawnConnected;
+static uint8_t appliedBrightness;
+static int64_t shownSince;
 static String consoleLine;
 
 /* A provisioning string (heap copy, NULL if absent). */
@@ -126,6 +132,45 @@ static void value(double v, const char *unit, bool degree, int y, uint16_t color
   canvas.drawString(unit, x, y);
 }
 
+static uint16_t hueColor(int h) {
+  uint8_t rgb[3];
+  view_hue(h, rgb);
+  return M5.Display.color565(rgb[0], rgb[1], rgb[2]);
+}
+
+/* A temperature with one decimal, without it if whole. */
+static String scaleEnd(int t10) {
+  char text[24];
+  if (t10 % 10 == 0)
+    snprintf(text, sizeof text, "%d", t10 / 10);
+  else
+    snprintf(text, sizeof text, "%s%d.%d", t10 < 0 ? "-" : "", abs(t10) / 10, abs(t10) % 10);
+  return text;
+}
+
+/* The colour scale with the ends and a marker at the temperature. */
+static void scale(double t, bool stale, int y) {
+  const int x0 = 48, w = 224, h = 10;
+  for (int x = 0; x < w; x++)
+    canvas.drawFastVLine(x0 + x, y, h, hueColor(2400 - 2400 * x / (w - 1)));
+  if (!stale) {
+    int mx = x0 + view_heat_position(t) * (w - 1) / 1000;
+    canvas.fillRect(mx - 2, y - 5, 5, h + 10, TFT_BLACK);
+    canvas.fillRect(mx - 1, y - 4, 3, h + 8, TFT_WHITE);
+  }
+  int cold, hot;
+  view_scale(&cold, &hot);
+  canvas.setFont(&fonts::Font2);
+  canvas.setTextColor(TFT_LIGHTGREY);
+  canvas.setTextDatum(middle_right);
+  canvas.drawString(scaleEnd(cold), x0 - 12, y + h / 2);
+  canvas.drawCircle(x0 - 8, y, 2, TFT_LIGHTGREY);  // the degree sign: Font2 has none
+  canvas.setTextDatum(middle_left);
+  String high = scaleEnd(hot);
+  canvas.drawString(high, x0 + w + 6, y + h / 2);
+  canvas.drawCircle(x0 + w + 6 + canvas.textWidth(high) + 4, y, 2, TFT_LIGHTGREY);
+}
+
 static void draw(int64_t now) {
   canvas.fillSprite(TFT_BLACK);
   canvas.fillRect(0, 0, 320, 30, 0x18E3);
@@ -156,17 +201,19 @@ static void draw(int64_t now) {
   canvas.setTextColor(TFT_WHITE);
   canvas.setFont(&fonts::FreeSans12pt7b);
   canvas.drawString(s->label[0] ? s->label : tail(s->source), 10, 38);
-  value(s->temperature, "C", true, 72, stale ? TFT_DARKGREY : TFT_ORANGE);
-  value(s->humidity, "%", false, 132, stale ? TFT_DARKGREY : TFT_SKYBLUE);
+  int heat = 2400 - 2400 * view_heat_position(s->temperature) / 1000;
+  value(s->temperature, "C", true, 66, stale ? TFT_DARKGREY : hueColor(heat));
+  scale(s->temperature, stale, 121);
+  value(s->humidity, "%", false, 142, stale ? TFT_DARKGREY : TFT_SKYBLUE);
   const char *h = s->health[0] ? s->health : "Health unknown";
-  canvas.fillCircle(16, 200, 7, healthColor(s->health));
+  canvas.fillCircle(16, 204, 7, healthColor(s->health));
   canvas.setFont(&fonts::FreeSans9pt7b);
   canvas.setTextColor(TFT_WHITE);
   canvas.setTextDatum(middle_left);
   String line = h;
   if (s->health[0] && s->health_score >= 0)
     line += String("  (") + s->health_score + ")";
-  canvas.drawString(line, 30, 200);
+  canvas.drawString(line, 30, 204);
   canvas.setFont(&fonts::Font2);
   canvas.setTextColor(stale ? TFT_RED : TFT_LIGHTGREY);
   canvas.drawString(String(tail(s->source)) + "   " + (stale ? "stale, " : "") + (long)age + " s ago", 10, 228);
@@ -262,6 +309,8 @@ void setup() {
   if (e != ESP_OK)
     return fail("oecm_esp_init", esp_err_to_name(e));
   view_setup(&cfg, &dev);
+  appliedBrightness = view_brightness();
+  M5.Display.setBrightness(appliedBrightness);
   if (level >= 3) {
     cfg.refdes_buf = refdes;
     cfg.refdes_cap = sizeof refdes;
@@ -292,12 +341,19 @@ void loop() {
   console();
   if (!running)
     return;
-  if (clicked())
+  int64_t now = view_now_ms();
+  unsigned cycle = view_cycle_s();
+  if (clicked() || (cycle && now - shownSince >= (int64_t)cycle * 1000)) {
     view_next();
+    shownSince = now;
+  }
   oecm_err oe = oecm_poll(&dev);
   if (oe != OECM_OK)
     Serial.printf("oecm_poll: %s\n", oecm_err_str(oe));
-  int64_t now = view_now_ms();
+  if (view_brightness() != appliedBrightness) {
+    appliedBrightness = view_brightness();
+    M5.Display.setBrightness(appliedBrightness);
+  }
   bool on = oecm_connected(&dev);
   if (view_revision() != drawnRevision || now / 1000 != drawnSecond || on != drawnConnected) {
     drawnRevision = view_revision();

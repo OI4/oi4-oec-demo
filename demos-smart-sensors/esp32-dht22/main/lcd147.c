@@ -3,10 +3,15 @@
  * Display: ST7789, 172 x 320, SPI (MOSI 45, SCLK 40, CS 42, DC 41, RST 39,
  * backlight DEMO_LCD147_BL_GPIO: 46 on the 1.47B with USB-C, 48 on the 1.47
  * with USB-A), used in landscape. It is drawn in bands of BAND rows from
- * one DMA buffer, so no frame buffer is needed. LED: one WS2812 on GPIO 38,
- * driven by the RMT bytes encoder. Both only on a change of the state. */
+ * one DMA buffer, so no frame buffer is needed. LED: one WS2812-type LED on
+ * GPIO 38 that takes its bytes in the order R, G, B (not G, R, B as a
+ * WS2812B; tested on the 1.47B), driven by the RMT bytes encoder, in the colour of the scale at its marker
+ * (gamma-corrected, so that the LED shows the colours of the display). Both
+ * only on a change of the state; the scale and the brightness of the LED
+ * come from the Config context "Display" (climate_display). */
 #include "sdkconfig.h"
 #if CONFIG_DEMO_LCD147
+#include <math.h>
 #include <string.h>
 
 #include "driver/gpio.h"
@@ -127,29 +132,31 @@ static esp_err_t led_init(void) {
     return rmt_enable(led);
 }
 
-static void led_set(const uint8_t rgb[3]) {
+/* A display (sRGB) channel as the duty of an LED channel: the WS2812 is
+ * linear, the display has a gamma of about 2.2. */
+static uint8_t led_channel(uint8_t c, unsigned level) {
+    return (uint8_t)lroundf(powf(c / 255.0f, 2.2f) * (float)level);
+}
+
+static void led_set(const uint8_t rgb[3], unsigned level) {
     if (!led)
         return;
-    uint8_t grb[3] = {
-        (uint8_t)(rgb[1] * CONFIG_DEMO_LED_BRIGHTNESS / 255),
-        (uint8_t)(rgb[0] * CONFIG_DEMO_LED_BRIGHTNESS / 255),
-        (uint8_t)(rgb[2] * CONFIG_DEMO_LED_BRIGHTNESS / 255),
-    };
+    uint8_t out[3] = {led_channel(rgb[0], level), led_channel(rgb[1], level), led_channel(rgb[2], level)};
     rmt_transmit_config_t t = {.loop_count = 0};
-    esp_err_t e = rmt_transmit(led, led_encoder, grb, sizeof grb, &t);
+    esp_err_t e = rmt_transmit(led, led_encoder, out, sizeof out, &t);
     if (e == ESP_OK)
-        e = rmt_tx_wait_all_done(led, 100); /* grb lives on this stack */
+        e = rmt_tx_wait_all_done(led, 100); /* out lives on this stack */
     if (e != ESP_OK)
         ESP_LOGW(TAG, "RGB LED: %s", esp_err_to_name(e));
     else
-        ESP_LOGD(TAG, "RGB LED %u %u %u", rgb[0], rgb[1], rgb[2]);
+        ESP_LOGD(TAG, "RGB LED %u %u %u", out[0], out[1], out[2]);
 }
 
 static void draw(const screen_state *s) {
     for (int y = 0; y < SCREEN_H; y += BAND) {
         int rows = SCREEN_H - y < BAND ? SCREEN_H - y : BAND;
         xSemaphoreTake(flushed, portMAX_DELAY); /* the previous band has left the buffer */
-        screen_render(s, CONFIG_DEMO_COLD_C, CONFIG_DEMO_HOT_C, y, rows, band);
+        screen_render(s, y, rows, band);
         if (esp_lcd_panel_draw_bitmap(panel, 0, y, SCREEN_W, y + rows, band) != ESP_OK)
             xSemaphoreGive(flushed);
     }
@@ -158,11 +165,15 @@ static void draw(const screen_state *s) {
 static void display_task(void *arg) {
     (void)arg;
     screen_state last;
+    uint8_t last_led[3] = {0, 0, 0};
+    unsigned last_level = 0;
     bool first = true;
     for (;;) {
         screen_state s;
+        unsigned level;
         memset(&s, 0, sizeof s);
         s.reading = climate_latest(&s.t10, &s.h10, &s.failure);
+        climate_display(&s.cold10, &s.hot10, &level);
         climate_label(s.label, sizeof s.label);
         taskENTER_CRITICAL(&lock);
         s.online = online;
@@ -175,13 +186,17 @@ static void display_task(void *arg) {
                 gpio_set_level(PIN_BL, 1);
                 ESP_LOGI(TAG, "first frame drawn, backlight on (GPIO %d)", PIN_BL);
             }
-            uint8_t rgb[3] = {0, 0, 0}; /* off without a valid reading */
-            if (s.reading && !s.failure)
-                screen_heat(s.t10, CONFIG_DEMO_COLD_C, CONFIG_DEMO_HOT_C, rgb);
-            led_set(rgb);
             last = s;
-            first = false;
         }
+        uint8_t rgb[3] = {0, 0, 0}; /* off without a valid reading */
+        if (s.reading && !s.failure)
+            screen_heat(s.t10, s.cold10, s.hot10, rgb);
+        if (first || level != last_level || memcmp(rgb, last_led, sizeof rgb) != 0) {
+            led_set(rgb, level);
+            memcpy(last_led, rgb, sizeof rgb);
+            last_level = level;
+        }
+        first = false;
         ulTaskNotifyTake(pdTRUE, pdMS_TO_TICKS(500));
     }
 }

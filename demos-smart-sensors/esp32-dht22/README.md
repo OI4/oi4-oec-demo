@@ -6,7 +6,7 @@ as an OEC smart device, on the [OEC Micro SDK](../../sdk/micro/README.md)
 sensor instead of the simulated one and Wi-Fi only. On the Waveshare
 ESP32-S3-LCD-1.47(B) board (variant `esp32s3-lcd147`) it also shows the
 readings on the display and the temperature as the colour of the RGB LED,
-blue (cold) to red (very warm). Guide with the dev
+blue (cold) over green and yellow to red (very warm). Guide with the dev
 environment, the registry, the config service, the logger and D7:
 [Smart sensor on an ESP32](https://oi4.github.io/oi4-oec-documentation/docs/community/demos/smart-sensor).
 
@@ -16,7 +16,7 @@ environment, the registry, the config service, the logger and D7:
 | ServiceType | `OTConnector` (a directly connected smart device) |
 | Messaging level | 3 (provisioning key `level`, default `CONFIG_DEMO_LEVEL`) |
 | Data | `Climate`: Temperature (°C, −40 … 80), Humidity (%, 0 … 100), Label; read-only |
-| Config | `Sensor`/`General`: Interval 2 … 3600 s (default 10), Label (32 characters); not stored across a restart |
+| Config | `Sensor`/`General`: Interval 2 … 3600 s (default 10), Label (32 characters); variant `esp32s3-lcd147` also `Display`/`Scale`: ColdTemperature, HotTemperature (−40 … 80 °C, default `DEMO_COLD_C`/`DEMO_HOT_C`), `Display`/`Led`: Brightness 0 (off) … 255 (default `DEMO_LED_BRIGHTNESS`); stored in NVS (namespace `demo.<context>`), kept across a restart |
 | Health | `NORMAL_0`/100; `FAILURE_1`/0 after three failed rounds of readings in a row, back on the next good reading |
 
 ## Files
@@ -24,11 +24,11 @@ environment, the registry, the config service, the logger and D7:
 | File | Content |
 |---|---|
 | `main/main.c` | Wi-Fi, SNTP, provisioning from NVS, the device loop, the serial console (`stop`, `time`) – as in the example of the Micro SDK |
-| `main/climate.c` | the DHT22: Data and Config tables, a reader task (critical section, core 1 if there is one), Health |
-| `main/lcd147.c` | variant `esp32s3-lcd147`: the ST7789 display (`esp_lcd`, drawn in bands of 20 rows, redrawn on a change) and the WS2812 RGB LED (RMT) |
+| `main/climate.c` | the DHT22: Data and Config tables, the Config in NVS, a reader task (critical section, core 1 if there is one), Health |
+| `main/lcd147.c` | variant `esp32s3-lcd147`: the ST7789 display (`esp_lcd`, drawn in bands of 20 rows, redrawn on a change) and the RGB LED (RMT; bytes in the order R, G, B, gamma-corrected) |
 | `main/screen.c` | the screen as pixels (Label, temperature, colour scale, humidity, Health, connection and address); no hardware, testable on a host |
 | `main/font5x7.c` | a 5 × 7 pixel font: ASCII, °, ä ö ü Ä Ö Ü ß |
-| `main/Kconfig.projbuild` | `DEMO_DHT22_GPIO` (default 23, ESP32-S3: 4), `DEMO_LEVEL`, `DEMO_CONSOLE`; the display board: `DEMO_LCD147`, `DEMO_LCD147_BL_GPIO` (backlight, 46 on the 1.47B with USB-C, 48 on the 1.47 with USB-A), `DEMO_LCD147_FLIP`, `DEMO_COLD_C`/`DEMO_HOT_C` (blue/red, default 15/30 °C), `DEMO_LED_BRIGHTNESS` |
+| `main/Kconfig.projbuild` | `DEMO_DHT22_GPIO` (default 23, ESP32-S3: 4), `DEMO_LEVEL`, `DEMO_CONSOLE`; the display board: `DEMO_LCD147`, `DEMO_LCD147_BL_GPIO` (backlight, 46 on the 1.47B with USB-C, 48 on the 1.47 with USB-A), `DEMO_LCD147_FLIP`, `DEMO_COLD_C`/`DEMO_HOT_C` (blue/red, default 15/30 °C), `DEMO_LED_BRIGHTNESS` (the defaults of the Config context `Display`) |
 | `main/idf_component.yml` | the component `oecm` from `../../../sdk/micro/port/esp-idf/oecm` (the OEC source tree) |
 | `sdkconfig.defaults`, `partitions.csv` | as in the example: 4 MB flash, the NVS partition `oecprov` at 0x10000 |
 | `sdkconfig.lcd147` | the variant `esp32s3-lcd147` on top of `sdkconfig.defaults` |
@@ -45,14 +45,19 @@ modules have one. The internal pull-up is on as well.
 
 The Waveshare ESP32-S3-LCD-1.47B (USB-C) and ESP32-S3-LCD-1.47 (USB-A)
 need no further wiring: the DHT22 at GPIO 4 of the header, the display
-(ST7789, SPI on GPIO 39 … 42 and 45) and the RGB LED (WS2812, GPIO 38) are
+(ST7789, SPI on GPIO 39 … 42 and 45) and the RGB LED (GPIO 38; a
+WS2812-type LED that takes its colour bytes in the order R, G, B) are
 on the board. Only the backlight differs: GPIO 46 on the 1.47B (default),
 GPIO 48 on the 1.47 (`DEMO_LCD147_BL_GPIO`). The display shows the Label,
-the temperature in the colour of the scale from `DEMO_COLD_C` (blue) to
-`DEMO_HOT_C` (red), the humidity, the Health and the connection to the
-broker with the address of the board (or the step of the start up). The
-RGB LED has the colour of the temperature; it is off without a valid
-reading.
+the temperature in the colour of the scale from `ColdTemperature` (blue)
+over green and yellow to `HotTemperature` (red) with a marker at the
+temperature, the humidity, the Health and the connection to the broker
+with the address of the board (or the step of the start up). The RGB LED
+has the colour of the scale at the marker (gamma-corrected, so that it
+matches the display) with the `Brightness` of the Config; it is off
+without a valid reading. The Config context `Display` sets the ends of
+the scale and the brightness of the LED; the lower of the two
+temperatures is the cold end, equal values span 1 °C.
 
 ## Build and flash
 
@@ -118,4 +123,9 @@ with the broker certificate for its LAN address (`go run ./pki -san <ip>`,
 and restart tests); the [Core2 display](../m5core2-display/README.md)
 shows its climate. Also on a Waveshare ESP32-S3-LCD-1.47B (variant
 `esp32s3-lcd147`, DHT22 on GPIO 4, 2026-11-28): display and RGB LED as
-described, D7 L3 without the proxy 39 pass, 0 fail, 16 skip.
+described, D7 L3 without the proxy 39 pass, 0 fail, 16 skip; with the
+Config context `Display` (C-115, 2026-11-28): `Set` of the scale and of the
+brightness `Good` and in effect at once, a value out of range
+`BadOutOfRange`, the values kept across a reset, the LED red at and above
+`HotTemperature` and green in the middle of the scale, D7 L3 without the
+proxy 39 pass, 0 fail, 16 skip.

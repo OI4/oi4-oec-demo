@@ -1,9 +1,17 @@
 /* The consumer side of the display demo (climate_view.h). Runs on the
  * device task only: on_message and on_config are called inside
- * oecm_esp_dispatch, the display reads the state in the same loop. */
+ * oecm_esp_dispatch, the display reads the state in the same loop.
+ *
+ * The Config values are kept in the default NVS partition (namespace
+ * "demo.Display") and survive a restart. */
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
+#include "esp_log.h"
 #include "esp_timer.h"
+#include "nvs.h"
 
 #include "climate_view.h"
 
@@ -23,6 +31,10 @@ static uint32_t sensors;
 static char shown[OECM_IL_BUF];
 static char title[25] = "OEC Climate";
 static char stale_after[8] = "120";
+static char brightness[8] = "50";
+static char cycle[8] = "0";
+static char cold[8] = "15";
+static char hot[8] = "30";
 
 static const oecm_field fields[] = {
     {.name = "Sensors", .description = "Climate sensors received", .type = OECM_TYPE_UINT32,
@@ -48,22 +60,97 @@ static const oecm_cfg_object general[] = {
      .description = "Seconds without Climate data until a sensor is shown as stale",
      .type = OECM_CFG_NUMBER, .value = stale_after, .cap = sizeof stale_after,
      .default_value = "120", .unit = "s", .mandatory = true, .min = "10", .max = "3600"},
+    {.key = "Brightness", .name = "Brightness", .description = "Brightness of the display",
+     .type = OECM_CFG_NUMBER, .value = brightness, .cap = sizeof brightness,
+     .default_value = "50", .unit = "%", .mandatory = true, .min = "5", .max = "100"},
+    {.key = "Cycle", .name = "Cycle",
+     .description = "Seconds until the next sensor is shown; 0: only by button A or a tap",
+     .type = OECM_CFG_NUMBER, .value = cycle, .cap = sizeof cycle, .default_value = "0",
+     .unit = "s", .mandatory = true, .min = "0", .max = "3600"},
 };
 
-static const oecm_cfg_group groups[] = {{
-    .key = "General",
-    .name = "General",
-    .objects = general,
-    .count = sizeof general / sizeof general[0],
-}};
+static const oecm_cfg_object scale[] = {
+    {.key = "ColdTemperature", .name = "Cold end",
+     .description = "Temperature shown blue, at the left end of the scale, and below",
+     .type = OECM_CFG_NUMBER, .value = cold, .cap = sizeof cold, .default_value = "15",
+     .unit = "°C", .mandatory = true, .min = "-40", .max = "80"},
+    {.key = "HotTemperature", .name = "Hot end",
+     .description = "Temperature shown red, at the right end of the scale, and above",
+     .type = OECM_CFG_NUMBER, .value = hot, .cap = sizeof hot, .default_value = "30",
+     .unit = "°C", .mandatory = true, .min = "-40", .max = "80"},
+};
+
+static const oecm_cfg_group groups[] = {
+    {.key = "General",
+     .name = "General",
+     .objects = general,
+     .count = sizeof general / sizeof general[0]},
+    {.key = "Scale",
+     .name = "Temperature scale",
+     .description = "The colour runs from blue (cold end) over green and yellow to red (hot end)",
+     .objects = scale,
+     .count = sizeof scale / sizeof scale[0]},
+};
 
 static const oecm_cfg_context contexts[] = {{
     .name = "Display",
     .title = "Display",
     .description = "Settings of the climate display",
     .groups = groups,
-    .count = 1,
+    .count = sizeof groups / sizeof groups[0],
 }};
+
+#define NVS_NAMESPACE "demo.Display"
+static const char *TAG = "view";
+
+/* A Number value within its Min and Max (NAN if not). */
+static double number(const oecm_cfg_object *o, const char *v) {
+    char *end;
+    double x = strtod(v, &end);
+    if (end == v || *end || !isfinite(x) || (o->min && x < strtod(o->min, NULL)) ||
+        (o->max && x > strtod(o->max, NULL)))
+        return NAN;
+    return x;
+}
+
+/* A Number value, its default if empty. */
+static double number_or_default(const oecm_cfg_object *o) {
+    double x = number(o, o->value);
+    return isnan(x) ? strtod(o->default_value, NULL) : x;
+}
+
+/* Takes over the stored values that are still valid. */
+static void settings_load(void) {
+    nvs_handle_t h;
+    if (nvs_open(NVS_NAMESPACE, NVS_READONLY, &h) != ESP_OK)
+        return; /* nothing stored yet */
+    for (size_t g = 0; g < contexts[0].count; g++)
+        for (size_t k = 0; k < contexts[0].groups[g].count; k++) {
+            const oecm_cfg_object *o = &contexts[0].groups[g].objects[k];
+            char v[64];
+            size_t n = sizeof v;
+            if (nvs_get_str(h, o->key, v, &n) != ESP_OK || strlen(v) >= o->cap ||
+                (o->type == OECM_CFG_NUMBER && v[0] && isnan(number(o, v))))
+                continue;
+            strcpy(o->value, v);
+        }
+    nvs_close(h);
+}
+
+static void settings_save(void) {
+    nvs_handle_t h;
+    esp_err_t e = nvs_open(NVS_NAMESPACE, NVS_READWRITE, &h);
+    for (size_t g = 0; e == ESP_OK && g < contexts[0].count; g++)
+        for (size_t k = 0; e == ESP_OK && k < contexts[0].groups[g].count; k++) {
+            const oecm_cfg_object *o = &contexts[0].groups[g].objects[k];
+            e = nvs_set_str(h, o->key, o->value);
+        }
+    if (e == ESP_OK)
+        e = nvs_commit(h);
+    if (e != ESP_OK)
+        ESP_LOGW(TAG, "Config not stored: %s", esp_err_to_name(e));
+    nvs_close(h);
+}
 
 int64_t view_now_ms(void) { return esp_timer_get_time() / 1000; }
 
@@ -143,11 +230,57 @@ void view_next(void) {
 
 const char *view_title(void) { return title; }
 
-unsigned view_stale_s(void) {
-    unsigned s = 0;
-    for (const char *p = stale_after; *p >= '0' && *p <= '9' && s < 100000u; p++)
-        s = s * 10u + (unsigned)(*p - '0');
-    return s < 10u ? 120u : s;
+unsigned view_stale_s(void) { return (unsigned)lround(number_or_default(&general[1])); }
+
+uint8_t view_brightness(void) {
+    return (uint8_t)lround(number_or_default(&general[2]) * 255 / 100);
+}
+
+unsigned view_cycle_s(void) { return (unsigned)lround(number_or_default(&general[3])); }
+
+void view_scale(int *cold10, int *hot10) {
+    int lo = (int)lround(number_or_default(&scale[0]) * 10);
+    int hi = (int)lround(number_or_default(&scale[1]) * 10);
+    if (lo > hi) { /* the scale runs from the lower to the higher value */
+        int t = lo;
+        lo = hi;
+        hi = t;
+    }
+    if (hi == lo)
+        hi = lo + 10; /* at least 1 °C */
+    *cold10 = lo;
+    *hot10 = hi;
+}
+
+void view_hue(int h, uint8_t rgb[3]) {
+    int f = (h % 600) * 255 / 600;
+    switch (h / 600) {
+    case 0: /* red → yellow */
+        rgb[0] = 255, rgb[1] = (uint8_t)f, rgb[2] = 0;
+        break;
+    case 1: /* yellow → green */
+        rgb[0] = (uint8_t)(255 - f), rgb[1] = 255, rgb[2] = 0;
+        break;
+    case 2: /* green → cyan */
+        rgb[0] = 0, rgb[1] = 255, rgb[2] = (uint8_t)f;
+        break;
+    case 3: /* cyan → blue */
+        rgb[0] = 0, rgb[1] = (uint8_t)(255 - f), rgb[2] = 255;
+        break;
+    default:
+        rgb[0] = 0, rgb[1] = 0, rgb[2] = 255;
+    }
+}
+
+int view_heat_position(double t) {
+    int lo, hi;
+    view_scale(&lo, &hi);
+    int t10 = (int)lround(t * 10);
+    if (t10 <= lo)
+        return 0;
+    if (t10 >= hi)
+        return 1000;
+    return (t10 - lo) * 1000 / (hi - lo);
 }
 
 uint32_t view_revision(void) { return revision; }
@@ -205,10 +338,12 @@ static void on_message(void *ctx, size_t subscription, const char *topic, const 
 static void on_config(void *ctx, size_t context) {
     (void)ctx;
     (void)context;
+    settings_save();
     revision++;
 }
 
 void view_setup(oecm_config *cfg, oecm_device *dev) {
+    settings_load();
     device = dev;
     cfg->data = data;
     cfg->data_count = 1;
