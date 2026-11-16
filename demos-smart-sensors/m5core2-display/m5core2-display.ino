@@ -4,10 +4,13 @@
  * of other OTConnector applications (e.g. the ESP32 DHT22 demo), received
  * through consumer subscriptions of the OEC Micro SDK (climate_view.c).
  * The temperature has the colour of a scale from blue (cold) over green and
- * yellow to red (hot). Button A or a tap on the screen shows the next
- * sensor, the Config Cycle also after a number of seconds. Title, stale
- * time, brightness, cycle and the ends of the scale are set through the
- * Config context "Display".
+ * yellow to red (hot), next to it a graph of its history (the latest point
+ * flashes with each new value), a trend arrow, the humidity and the dew
+ * point. Button A, a tap or a swipe to the left
+ * shows the next sensor, a swipe to the right the previous one, the Config
+ * Cycle also after a number of seconds. Title, stale time, brightness,
+ * cycle, the time of the graph and the ends of the scale are set through
+ * the Config context "Display".
  *
  * Provisioning as the DHT22 demo (README): the NVS partition "oecprov",
  * namespace "oec", strings uri, ca, user + password or cert + key,
@@ -53,6 +56,9 @@ static bool drawnConnected;
 static uint8_t appliedBrightness;
 static int64_t shownSince;
 static String consoleLine;
+static int64_t pulseUntil;  // a ring spreads from the latest point of the graph until then
+static int64_t drawnMs;
+static const int PULSE_MS = 1200;
 
 /* A provisioning string (heap copy, NULL if absent). */
 static char *provStr(nvs_handle_t h, const char *key) {
@@ -93,6 +99,10 @@ static void fail(const char *what, const char *why) {
   running = false;
 }
 
+static const uint16_t CARD = 0x10A2;   // background of the cards
+static const uint16_t EDGE = 0x31A6;   // guide lines, inactive page dots
+static const uint16_t MUTED = 0x9CF3;  // small labels
+
 static uint16_t healthColor(const char *h) {
   if (strcmp(h, "NORMAL_0") == 0)
     return TFT_GREEN;
@@ -107,29 +117,23 @@ static uint16_t healthColor(const char *h) {
   return TFT_DARKGREY;
 }
 
+/* A Health state as words: "NORMAL_0" → "Normal", "OFF_SPEC_3" → "Off spec". */
+static String healthName(const char *h) {
+  String out;
+  size_t n = strlen(h);
+  while (n && isdigit((unsigned char)h[n - 1]))
+    n--;
+  if (n && n < strlen(h) && h[n - 1] == '_')
+    n--;
+  for (size_t i = 0; i < n; i++)
+    out += h[i] == '_' ? ' ' : (char)(i ? tolower((unsigned char)h[i]) : h[i]);
+  return out;
+}
+
 /* The last part of an Identification Link (the SerialNumber). */
 static const char *tail(const char *il) {
   const char *t = strrchr(il, '/');
   return t ? t + 1 : il;
-}
-
-/* A value in the 7-segment font with its unit in a smaller one. */
-static void value(double v, const char *unit, bool degree, int y, uint16_t color) {
-  char text[16];
-  snprintf(text, sizeof text, "%.1f", v);
-  canvas.setTextColor(color);
-  canvas.setTextDatum(top_right);
-  canvas.setFont(&fonts::Font7);
-  canvas.drawString(text, 220, y);
-  canvas.setTextDatum(top_left);
-  canvas.setFont(&fonts::FreeSansBold18pt7b);
-  int x = 232;
-  if (degree) {
-    canvas.drawCircle(x + 5, y + 6, 5, color);
-    canvas.drawCircle(x + 5, y + 6, 4, color);
-    x += 14;
-  }
-  canvas.drawString(unit, x, y);
 }
 
 static uint16_t hueColor(int h) {
@@ -138,85 +142,341 @@ static uint16_t hueColor(int h) {
   return M5.Display.color565(rgb[0], rgb[1], rgb[2]);
 }
 
+/* The colour of the scale at a temperature in tenths of °C. */
+static uint16_t heatColor(int t10) {
+  return hueColor(2400 - 2400 * view_heat_position(t10 / 10.0) / 1000);
+}
+
+/* c mixed with the card background, pct % of c. */
+static uint16_t fade(uint16_t c, int pct) {
+  int r = ((c >> 11) & 31) * pct + ((CARD >> 11) & 31) * (100 - pct);
+  int g = ((c >> 5) & 63) * pct + ((CARD >> 5) & 63) * (100 - pct);
+  int b = (c & 31) * pct + (CARD & 31) * (100 - pct);
+  return (uint16_t)(((r / 100) << 11) | ((g / 100) << 5) | (b / 100));
+}
+
 /* A temperature with one decimal, without it if whole. */
-static String scaleEnd(int t10) {
+static String tenths(int t10, bool trim) {
   char text[24];
-  if (t10 % 10 == 0)
+  if (trim && t10 % 10 == 0)
     snprintf(text, sizeof text, "%d", t10 / 10);
   else
     snprintf(text, sizeof text, "%s%d.%d", t10 < 0 ? "-" : "", abs(t10) / 10, abs(t10) % 10);
   return text;
 }
 
-/* The colour scale with the ends and a marker at the temperature. */
-static void scale(double t, bool stale, int y) {
-  const int x0 = 48, w = 224, h = 10;
-  for (int x = 0; x < w; x++)
-    canvas.drawFastVLine(x0 + x, y, h, hueColor(2400 - 2400 * x / (w - 1)));
+/* Text in Font2 with a degree sign after it (the font has none), from x
+ * or, if right, ending at x. */
+static void withDegree(const String &text, int x, int y, bool right, uint16_t color) {
+  canvas.setFont(&fonts::Font2);
+  canvas.setTextColor(color);
+  canvas.setTextDatum(top_left);
+  int w = canvas.textWidth(text);
+  int left = right ? x - w - 6 : x;
+  canvas.drawString(text, left, y);
+  canvas.drawCircle(left + w + 3, y + 3, 2, color);
+}
+
+/* A small filled triangle pointing up (dir < 0), down (> 0) or right (0). */
+static void arrow(int cx, int cy, int r, int dir, uint16_t color) {
+  if (dir < 0)
+    canvas.fillTriangle(cx, cy - r, cx - r, cy + r - 2, cx + r, cy + r - 2, color);
+  else if (dir > 0)
+    canvas.fillTriangle(cx, cy + r, cx - r, cy - r + 2, cx + r, cy - r + 2, color);
+  else
+    canvas.fillTriangle(cx + r, cy, cx - r + 2, cy - r, cx - r + 2, cy + r, color);
+}
+
+/* The temperature of s, with linear interpolation, at second t of the view
+ * clock; false in a gap of the history or outside it. */
+static bool historyAt(const view_sensor *s, double t, uint32_t gap, double *t10) {
+  for (size_t i = 1; i < s->history_count; i++) {
+    const view_point *a = view_history_at(s, i - 1), *b = view_history_at(s, i);
+    if (t < a->s || t > b->s)
+      continue;
+    if (b->s - a->s > gap)
+      return false;
+    *t10 = a->t10 + (b->t10 - a->t10) * (t - a->s) / (double)(b->s - a->s ? b->s - a->s : 1);
+    return true;
+  }
+  return false;
+}
+
+/* The temperature graph of s in a card: the area below the curve in the
+ * colour of the scale, fading into the card, the curve, the latest point,
+ * the highest and lowest value and the time shown. */
+static void graph(const view_sensor *s, bool stale, int64_t now) {
+  const int cx = 8, cy = 66, cw = 146, ch = 104;
+  const int x0 = cx + 6, x1 = cx + cw - 7, y0 = cy + 24, y1 = cy + ch - 22;
+  canvas.fillSmoothRoundRect(cx, cy, cw, ch, 10, CARD);
+  uint32_t span = view_history_s();
+  canvas.setFont(&fonts::Font2);
+  canvas.setTextColor(MUTED);
+  canvas.setTextDatum(top_right);
+  canvas.drawString(span % 3600 ? String(span / 60) + " min" : String(span / 3600) + " h", x1, cy + 5);
+  uint32_t sec = (uint32_t)(now / 1000);
+  int lo = INT_MAX, hi = INT_MIN;
+  size_t first = s->history_count;
+  for (size_t i = 0; i < s->history_count; i++) {
+    const view_point *p = view_history_at(s, i);
+    if (sec - p->s > span)
+      continue;
+    if (first == s->history_count)
+      first = i;
+    if (p->t10 < lo)
+      lo = p->t10;
+    if (p->t10 > hi)
+      hi = p->t10;
+  }
+  uint32_t step = span / (VIEW_HISTORY - 8);
+  uint32_t gap = view_stale_s();
+  if (gap < 3 * (step ? step : 1))
+    gap = 3 * (step ? step : 1);
+  double start = (double)sec - span, edge = 0;  // the curve begins at the left edge
+  bool edged = sec > span && historyAt(s, start, gap, &edge);
+  if (edged && first != s->history_count) {
+    if (edge < lo)
+      lo = (int)floor(edge);
+    if (edge > hi)
+      hi = (int)ceil(edge);
+  }
+  if (first == s->history_count) {
+    canvas.setTextDatum(middle_center);
+    canvas.drawString("collecting ...", cx + cw / 2, (y0 + y1) / 2);
+    return;
+  }
+  arrow(x0 + 4, cy + 12, 4, -1, MUTED);
+  withDegree(tenths(hi, false), x0 + 12, cy + 5, false, MUTED);
+  arrow(x0 + 4, y1 + 12, 4, 1, MUTED);
+  withDegree(tenths(lo, false), x0 + 12, y1 + 5, false, MUTED);
+  int vlo = lo, vhi = hi;
+  if (vhi - vlo < 10) {  // at least 1 °C high
+    int mid = (vlo + vhi) / 2;
+    vlo = mid - 5;
+    vhi = mid + 5;
+  }
+  auto ypos = [&](double t10) { return y1 - (int)lround((t10 - vlo) * (y1 - y0) / (vhi - vlo)); };
+  for (int x = x0; x <= x1; x += 4)  // dotted guide lines at the highest and lowest value
+    for (int y : {ypos(hi), ypos(lo)})
+      canvas.drawPixel(x, y, EDGE);
+  auto xpos = [&](uint32_t t) { return x1 - (int)lround((double)(sec - t) * (x1 - x0) / span); };
+  canvas.setClipRect(x0, y0 - 6, x1 - x0 + 1, y1 - y0 + 13);
+  for (int x = x0; x <= x1; x++) {
+    double t10;
+    if (!historyAt(s, sec - (double)(x1 - x) * span / (x1 - x0), gap, &t10))
+      continue;
+    int y = ypos(t10);
+    uint16_t c = stale ? TFT_DARKGREY : heatColor((int)lround(t10));
+    canvas.drawGradientVLine(x, y, y1 - y + 1, fade(c, 45), CARD);
+  }
+  for (size_t i = (first ? first - 1 : 0) + 1; i < s->history_count; i++) {
+    const view_point *a = view_history_at(s, i - 1), *b = view_history_at(s, i);
+    if (b->s - a->s > gap)
+      continue;
+    bool cut = a->s < start;  // drawWideLine ignores the clip rectangle
+    if (cut && !edged)
+      continue;
+    canvas.drawWideLine(cut ? x0 : xpos(a->s), ypos(cut ? edge : a->t10), xpos(b->s), ypos(b->t10), 1.3f,
+                        stale ? TFT_DARKGREY : heatColor((a->t10 + b->t10) / 2));
+  }
+  canvas.clearClipRect();
+  const view_point *last = view_history_at(s, s->history_count - 1);
+  int lx = xpos(last->s), ly = ypos(last->t10);
+  int64_t since = now - s->data_ms;
+  bool pulse = !stale && since >= 0 && since < PULSE_MS;
+  if (pulse) {  // a new value: a ring spreads from the point and fades
+    pulseUntil = s->data_ms + PULSE_MS;
+    float p = since / (float)PULSE_MS;
+    int r = 6 + (int)(p * 10);
+    canvas.setClipRect(cx, cy, cw, ch);
+    canvas.fillArc(lx, ly, r, r - 2, 0, 360, fade(heatColor(last->t10), (int)(100 * (1 - p) * (1 - p))));
+    canvas.clearClipRect();
+  }
+  bool flash = pulse && since < PULSE_MS / 3;
+  canvas.fillSmoothCircle(lx, ly, flash ? 6 : 5, TFT_WHITE);
+  if (!flash)
+    canvas.fillSmoothCircle(lx, ly, 3, stale ? TFT_DARKGREY : heatColor(last->t10));
+}
+
+/* Rising (-1), falling (1) or steady (0) over the last five minutes, 2 if
+ * the history is too short. */
+static int trend(const view_sensor *s) {
+  if (s->history_count < 2)
+    return 2;
+  const view_point *last = view_history_at(s, s->history_count - 1);
+  const view_point *then = nullptr;
+  for (size_t i = s->history_count - 1; i-- > 0;) {
+    then = view_history_at(s, i);
+    if (last->s - then->s >= 300)
+      break;
+  }
+  if (last->s - then->s < 60)
+    return 2;
+  int d = last->t10 - then->t10;
+  return d >= 3 ? -1 : d <= -3 ? 1 : 0;
+}
+
+/* The temperature, its trend and below it the colour scale, as wide as the
+ * number, with a knob at the temperature and the ends of the scale. */
+static void temperature(const view_sensor *s, bool stale) {
+  const int left = 162, right = 312;
+  int t10 = (int)lround(s->temperature * 10);
+  uint16_t color = stale ? TFT_DARKGREY : heatColor(t10);
+  String text = tenths(t10, false);
+  canvas.setFont(&fonts::Font7);
+  int tw = canvas.textWidth(text);
+  int xs = (left + right) / 2 - (tw + 30) / 2;
+  canvas.setTextColor(color);
+  canvas.setTextDatum(top_left);
+  canvas.drawString(text, xs, 72);
+  int ux = xs + tw + 6;
+  canvas.drawCircle(ux + 5, 77, 4, color);
+  canvas.drawCircle(ux + 5, 77, 3, color);
+  canvas.setFont(&fonts::FreeSansBold12pt7b);
+  canvas.drawString("C", ux + 11, 72);
+  int dir = trend(s);
+  if (dir != 2 && !stale)
+    arrow(ux + 15, 110, 7, dir, dir ? color : MUTED);
+  const int by = 132, bh = 8, r = bh / 2;
+  for (int i = 0; i < tw; i++) {
+    int d = i < tw - 1 - i ? i : tw - 1 - i;
+    int inset = d < r ? r - (int)lround(sqrt((double)r * r - (r - d - 0.5) * (r - d - 0.5))) : 0;
+    uint16_t c = hueColor(2400 - 2400 * i / (tw - 1));
+    canvas.drawFastVLine(xs + i, by + inset, bh - 2 * inset, stale ? fade(c, 35) : c);
+  }
   if (!stale) {
-    int mx = x0 + view_heat_position(t) * (w - 1) / 1000;
-    canvas.fillRect(mx - 2, y - 5, 5, h + 10, TFT_BLACK);
-    canvas.fillRect(mx - 1, y - 4, 3, h + 8, TFT_WHITE);
+    int mx = xs + view_heat_position(s->temperature) * (tw - 1) / 1000;
+    canvas.fillSmoothCircle(mx, by + r, 8, TFT_BLACK);
+    canvas.fillSmoothCircle(mx, by + r, 7, TFT_WHITE);
+    canvas.fillSmoothCircle(mx, by + r, 4, color);
   }
   int cold, hot;
   view_scale(&cold, &hot);
+  withDegree(tenths(cold, true), xs, by + bh + 6, false, MUTED);
+  withDegree(tenths(hot, true), xs + tw, by + bh + 6, true, MUTED);
+}
+
+/* Dew point (Magnus formula, °C) of a temperature and relative humidity. */
+static double dewPoint(double t, double rh) {
+  if (rh <= 0)
+    return NAN;
+  double g = log(rh / 100) + 17.62 * t / (243.12 + t);
+  return 243.12 * g / (17.62 - g);
+}
+
+/* A card with an icon, a small caption and a value with its unit (after a
+ * degree sign if degree). */
+static void tile(int x, const char *caption, const String &val, const char *unit, bool degree,
+                 uint16_t color, void (*icon)(int, int, uint16_t)) {
+  const int y = 178, w = 146, h = 40;
+  canvas.fillSmoothRoundRect(x, y, w, h, 10, CARD);
+  icon(x + 16, y + h / 2, color);
   canvas.setFont(&fonts::Font2);
-  canvas.setTextColor(TFT_LIGHTGREY);
-  canvas.setTextDatum(middle_right);
-  canvas.drawString(scaleEnd(cold), x0 - 12, y + h / 2);
-  canvas.drawCircle(x0 - 8, y, 2, TFT_LIGHTGREY);  // the degree sign: Font2 has none
+  canvas.setTextColor(MUTED);
+  canvas.setTextDatum(top_left);
+  canvas.drawString(caption, x + 32, y + 3);
+  canvas.setFont(&fonts::FreeSansBold12pt7b);
+  canvas.setTextColor(color);
+  canvas.drawString(val, x + 32, y + 19);
+  int ux = x + 32 + canvas.textWidth(val) + 4;
+  if (degree) {
+    canvas.drawCircle(ux + 3, y + 23, 3, color);
+    ux += 9;
+  }
+  canvas.setFont(&fonts::FreeSans9pt7b);
+  canvas.drawString(unit, ux, y + 22);
+}
+
+static void droplet(int x, int y, uint16_t c) {
+  canvas.fillSmoothCircle(x, y + 4, 6, c);
+  canvas.fillTriangle(x, y - 9, x - 6, y + 3, x + 6, y + 3, c);
+}
+
+static void thermometer(int x, int y, uint16_t c) {
+  canvas.fillSmoothRoundRect(x - 2, y - 10, 5, 14, 2, c);
+  canvas.fillSmoothCircle(x, y + 6, 4, c);
+}
+
+/* text at (x, y), middle left, in the largest font that fits into width,
+ * shortened with "..." if even the smallest does not. */
+static void fitted(const String &text, int x, int y, int width) {
   canvas.setTextDatum(middle_left);
-  String high = scaleEnd(hot);
-  canvas.drawString(high, x0 + w + 6, y + h / 2);
-  canvas.drawCircle(x0 + w + 6 + canvas.textWidth(high) + 4, y, 2, TFT_LIGHTGREY);
+  canvas.setTextColor(TFT_WHITE);
+  canvas.setFont(&fonts::FreeSans12pt7b);
+  if (canvas.textWidth(text) > width)
+    canvas.setFont(&fonts::FreeSans9pt7b);
+  String t = text;
+  while (t.length() > 1 && canvas.textWidth(t) > width) {
+    t.remove(t.length() - (t.endsWith("...") ? 4 : 1));
+    t.trim();
+    t += "...";
+  }
+  canvas.drawString(t, x, y);
 }
 
 static void draw(int64_t now) {
   canvas.fillSprite(TFT_BLACK);
-  canvas.fillRect(0, 0, 320, 30, 0x18E3);
+  canvas.fillRect(0, 0, 320, 28, 0x18E3);
   canvas.setTextColor(TFT_WHITE);
   canvas.setTextDatum(middle_left);
   canvas.setFont(&fonts::FreeSansBold12pt7b);
-  canvas.drawString(view_title(), 8, 15);
+  canvas.drawString(view_title(), 8, 14);
   bool on = oecm_connected(&dev);
-  canvas.fillCircle(306, 15, 7, on ? TFT_GREEN : TFT_RED);
+  canvas.fillSmoothCircle(306, 14, 6, on ? TFT_GREEN : TFT_RED);
   size_t n = view_count();
-  canvas.setFont(&fonts::Font2);
-  canvas.setTextDatum(middle_right);
-  if (n)
-    canvas.drawString(String(view_shown() + 1) + "/" + n, 290, 15);
+  unsigned cycle = view_cycle_s();
+  if (cycle && n > 1)  // time until the next sensor
+  {
+    int64_t w = (now - shownSince) * 320 / (cycle * 1000LL);
+    canvas.fillRect(0, 26, w > 320 ? 320 : (int)w, 2, EDGE);
+  }
   if (n == 0) {
     canvas.setTextDatum(middle_center);
     canvas.setFont(&fonts::FreeSans9pt7b);
     canvas.drawString(on ? "waiting for climate data ..." : "connecting to the broker ...", 160, 110);
     canvas.setFont(&fonts::Font2);
-    canvas.drawString(oecm_identification_link(&dev), 160, 150);
+    canvas.setTextColor(MUTED);
+    String il = oecm_identification_link(&dev);  // one segment per line
+    for (int y = 140, from = 0; from <= (int)il.length(); y += 18) {
+      int slash = il.indexOf('/', from);
+      if (slash < 0)
+        slash = il.length();
+      canvas.drawString(il.substring(from, slash), 160, y);
+      from = slash + 1;
+    }
     canvas.pushSprite(0, 0);
     return;
   }
   const view_sensor *s = view_at(view_shown());
   int64_t age = (now - s->data_ms) / 1000;
   bool stale = age > (int64_t)view_stale_s();
-  canvas.setTextDatum(top_left);
-  canvas.setTextColor(TFT_WHITE);
-  canvas.setFont(&fonts::FreeSans12pt7b);
-  canvas.drawString(s->label[0] ? s->label : tail(s->source), 10, 38);
-  int heat = 2400 - 2400 * view_heat_position(s->temperature) / 1000;
-  value(s->temperature, "C", true, 66, stale ? TFT_DARKGREY : hueColor(heat));
-  scale(s->temperature, stale, 121);
-  value(s->humidity, "%", false, 142, stale ? TFT_DARKGREY : TFT_SKYBLUE);
-  const char *h = s->health[0] ? s->health : "Health unknown";
-  canvas.fillCircle(16, 204, 7, healthColor(s->health));
-  canvas.setFont(&fonts::FreeSans9pt7b);
+
+  canvas.setFont(&fonts::Font2);
+  String chip = s->health[0] ? healthName(s->health) : String("Health unknown");
+  if (s->health[0] && s->health_score >= 0)
+    chip += String("  ") + s->health_score;
+  int cw = canvas.textWidth(chip) + 32;
+  canvas.fillSmoothRoundRect(312 - cw, 36, cw, 22, 11, CARD);
+  canvas.fillSmoothCircle(312 - cw + 12, 47, 5, healthColor(s->health));
   canvas.setTextColor(TFT_WHITE);
   canvas.setTextDatum(middle_left);
-  String line = h;
-  if (s->health[0] && s->health_score >= 0)
-    line += String("  (") + s->health_score + ")";
-  canvas.drawString(line, 30, 204);
+  canvas.drawString(chip, 312 - cw + 23, 47);
+  fitted(s->label[0] ? s->label : tail(s->source), 10, 47, 312 - cw - 18);
+
+  graph(s, stale, now);
+  temperature(s, stale);
+  tile(8, "Humidity", String(s->humidity, 1), "%", false, stale ? TFT_DARKGREY : TFT_SKYBLUE, droplet);
+  double dp = dewPoint(s->temperature, s->humidity);
+  tile(166, "Dew point", isnan(dp) ? String("-") : String(dp, 1), isnan(dp) ? "" : "C", !isnan(dp),
+       stale ? TFT_DARKGREY : TFT_WHITE, thermometer);
+
   canvas.setFont(&fonts::Font2);
-  canvas.setTextColor(stale ? TFT_RED : TFT_LIGHTGREY);
-  canvas.drawString(String(tail(s->source)) + "   " + (stale ? "stale, " : "") + (long)age + " s ago", 10, 228);
+  canvas.setTextColor(stale ? TFT_RED : MUTED);
+  canvas.setTextDatum(middle_left);
+  canvas.drawString(String(tail(s->source)) + "   " + (stale ? "stale, " : "") + (long)age + " s ago", 10, 230);
+  for (size_t i = 0; n > 1 && i < n; i++)
+    canvas.fillSmoothCircle(308 - (int)(n - 1 - i) * 12, 230, i == view_shown() ? 4 : 3,
+                            i == view_shown() ? TFT_WHITE : EDGE);
   canvas.pushSprite(0, 0);
 }
 
@@ -324,10 +584,17 @@ void setup() {
   running = true;
 }
 
-static bool clicked() {
+/* Next sensor (1): button A, a tap or a swipe to the left; the previous
+ * one (-1): a swipe to the right. */
+static int gesture() {
   if (M5.BtnA.wasClicked())
-    return true;
-  return M5.Touch.getCount() > 0 && M5.Touch.getDetail(0).wasClicked();
+    return 1;
+  if (M5.Touch.getCount() == 0)
+    return 0;
+  const auto &t = M5.Touch.getDetail(0);
+  if (t.wasFlicked())
+    return t.distanceX() < 0 ? 1 : -1;
+  return t.wasClicked() ? 1 : 0;
 }
 
 void loop() {
@@ -337,16 +604,22 @@ void loop() {
     return;
   }
   uint32_t wait = oecm_poll_interval_ms(&dev);
-  oecm_esp_dispatch(port, &dev, wait > 50 ? 50 : wait);  // short: buttons and touch stay responsive
+  bool pulsing = view_now_ms() < pulseUntil + 40;  // one more frame without the ring
+  if (wait > (pulsing ? 10u : 50u))  // short: buttons, touch and the pulse stay responsive
+    wait = pulsing ? 10 : 50;
+  oecm_esp_dispatch(port, &dev, wait);
   console();
   if (!running)
     return;
   int64_t now = view_now_ms();
   unsigned cycle = view_cycle_s();
-  if (clicked() || (cycle && now - shownSince >= (int64_t)cycle * 1000)) {
+  int g = gesture();
+  if (g < 0)
+    view_prev();
+  else if (g > 0 || (cycle && now - shownSince >= (int64_t)cycle * 1000))
     view_next();
+  if (g || (cycle && now - shownSince >= (int64_t)cycle * 1000))
     shownSince = now;
-  }
   oecm_err oe = oecm_poll(&dev);
   if (oe != OECM_OK)
     Serial.printf("oecm_poll: %s\n", oecm_err_str(oe));
@@ -355,7 +628,9 @@ void loop() {
     M5.Display.setBrightness(appliedBrightness);
   }
   bool on = oecm_connected(&dev);
-  if (view_revision() != drawnRevision || now / 1000 != drawnSecond || on != drawnConnected) {
+  if (view_revision() != drawnRevision || now / 1000 != drawnSecond || on != drawnConnected ||
+      (pulsing && now - drawnMs >= 40)) {
+    drawnMs = now;
     drawnRevision = view_revision();
     drawnSecond = now / 1000;
     drawnConnected = on;

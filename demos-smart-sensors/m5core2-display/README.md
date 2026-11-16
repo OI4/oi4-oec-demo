@@ -16,21 +16,37 @@ Guide with the dev environment:
 | Messaging level | 3 (provisioning key `level`: 2 or 3; the consumer subscriptions need Level 2) |
 | Subscriptions | `Oi4v2/OTConnector/+/Pub/Data/+/Climate` and `Oi4v2/OTConnector/+/Pub/Health/+`, listed in the SubscriptionList (`NONE_0`, not writable) |
 | Data | `View`: Sensors (number of sensors with Climate data), Shown (Identification Link of the shown sensor); read-only |
-| Config | `Display`/`General`: Title (24 characters, default `OEC Climate`), StaleAfter 10 … 3600 s (default 120), Brightness 5 … 100 % (default 50), Cycle 0 … 3600 s (default 0: only by button or tap); `Display`/`Scale`: ColdTemperature, HotTemperature (−40 … 80 °C, default 15/30); stored in NVS (namespace `demo.Display`), kept across a restart |
+| Config | `Display`/`General`: Title (24 characters, default `OEC Climate`), StaleAfter 10 … 3600 s (default 120), Brightness 5 … 100 % (default 50), Cycle 0 … 3600 s (default 0: only by button, tap or swipe), History 5 … 720 min (default 30: the time shown by the graph); `Display`/`Scale`: ColdTemperature, HotTemperature (−40 … 80 °C, default 15/30); stored in NVS (namespace `demo.Display`), kept across a restart |
 | Health | `NORMAL_0`/100 |
 
-The display shows the Label (or the SerialNumber), Temperature, Humidity
-and Health of one sensor and the age of its last `Climate` publication; a
-sensor without data for `StaleAfter` seconds is shown grey and "stale".
-The temperature has the colour of a scale below it, from `ColdTemperature`
-(blue) over green and yellow to `HotTemperature` (red), with a marker at
-the temperature – the same colours as the display and the RGB LED of the
-ESP32-S3-LCD-1.47 variant of the DHT22 demo; the lower of the two
-temperatures is the cold end, equal values span 1 °C. Button A or a tap
-on the screen shows the next sensor; with `Cycle` above 0 the display
-also changes to the next one after that many seconds. The display keeps
-up to six sensors (a sensor that only sent Health makes room for one with
-data); its own publications are ignored.
+The display shows one sensor:
+
+- the Label (or the SerialNumber; in a smaller font or shortened when it
+  is long) and a chip with its Health in plain words (`NORMAL_0` →
+  "Normal") and the HealthScore;
+- a graph of the temperature over the last `History` minutes: the curve
+  in the colour of the scale, the area below it fading into the card, the
+  highest and the lowest value; the latest point flashes and sends out a
+  fading ring when a new value arrives; the display keeps up to 128 points per
+  sensor in RAM, so the graph starts empty after a restart;
+- the temperature with a trend arrow (up/down: at least 0.3 °C within the
+  last five minutes, grey: steady) and below it a colour scale as wide as
+  the number, from `ColdTemperature` (blue) over green and yellow to
+  `HotTemperature` (red), with a knob at the temperature – the same
+  colours as the display and the RGB LED of the ESP32-S3-LCD-1.47 variant
+  of the DHT22 demo; the lower of the two temperatures is the cold end,
+  equal values span 1 °C;
+- the Humidity and the dew point (Magnus formula);
+- the SerialNumber, the age of the last `Climate` publication and, with
+  more than one sensor, one dot per sensor.
+
+A sensor without data for `StaleAfter` seconds is shown grey, its age red.
+Button A, a tap or a swipe to the left shows the next sensor, a swipe to
+the right the previous one; with `Cycle` above 0 the display also changes
+to the next one after that many seconds (a thin line below the title shows
+the time left). The display keeps up to six sensors (a sensor that only
+sent Health makes room for one with data); its own publications are
+ignored.
 
 ## Files
 
@@ -87,3 +103,7 @@ With the extended Config (C-115, 2026-11-28): `Set` of the scale and the
 brightness `Good` and in effect at once, the temperature and the marker in
 the colours of the S3 display; D7 L3 without the proxy 38 pass, 0 fail,
 17 skip.
+With the graph (C-116, 2026-11-28): `Set` of `History` `Good` and in
+effect at once; with a simulated second sensor (Climate from
+`mosquitto_pub`) the page dots, button A, tap and swipe in both directions
+change the sensor; D7 L3 without the proxy 38 pass, 0 fail, 17 skip.

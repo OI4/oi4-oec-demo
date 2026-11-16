@@ -35,6 +35,7 @@ static char brightness[8] = "50";
 static char cycle[8] = "0";
 static char cold[8] = "15";
 static char hot[8] = "30";
+static char history[8] = "30";
 
 static const oecm_field fields[] = {
     {.name = "Sensors", .description = "Climate sensors received", .type = OECM_TYPE_UINT32,
@@ -67,6 +68,9 @@ static const oecm_cfg_object general[] = {
      .description = "Seconds until the next sensor is shown; 0: only by button A or a tap",
      .type = OECM_CFG_NUMBER, .value = cycle, .cap = sizeof cycle, .default_value = "0",
      .unit = "s", .mandatory = true, .min = "0", .max = "3600"},
+    {.key = "History", .name = "History", .description = "Minutes shown by the temperature graph",
+     .type = OECM_CFG_NUMBER, .value = history, .cap = sizeof history, .default_value = "30",
+     .unit = "min", .mandatory = true, .min = "5", .max = "720"},
 };
 
 static const oecm_cfg_object scale[] = {
@@ -228,6 +232,15 @@ void view_next(void) {
     revision++;
 }
 
+void view_prev(void) {
+    size_t n = view_count();
+    if (n < 2)
+        return;
+    copy(shown, sizeof shown, view_at((view_shown() + n - 1) % n)->source);
+    (void)oecm_data_changed(device, 0);
+    revision++;
+}
+
 const char *view_title(void) { return title; }
 
 unsigned view_stale_s(void) { return (unsigned)lround(number_or_default(&general[1])); }
@@ -237,6 +250,31 @@ uint8_t view_brightness(void) {
 }
 
 unsigned view_cycle_s(void) { return (unsigned)lround(number_or_default(&general[3])); }
+
+unsigned view_history_s(void) { return (unsigned)lround(number_or_default(&general[4]) * 60); }
+
+const view_point *view_history_at(const view_sensor *s, size_t i) {
+    return &s->history[(s->history_next + VIEW_HISTORY - s->history_count + i) % VIEW_HISTORY];
+}
+
+/* Adds a temperature to the history of s; within one step the latest value
+ * replaces the point of the step. */
+static void remember(view_sensor *s, double t, int64_t now_ms) {
+    uint32_t sec = (uint32_t)(now_ms / 1000);
+    uint32_t step = view_history_s() / (VIEW_HISTORY - 8);
+    long t10 = lround(t * 10);
+    view_point p = {.s = sec, .t10 = (int16_t)(t10 < -32768 ? -32768 : t10 > 32767 ? 32767 : t10)};
+    if (step == 0)
+        step = 1;
+    if (s->history_count && view_history_at(s, s->history_count - 1)->s / step == sec / step) {
+        s->history[(s->history_next + VIEW_HISTORY - 1) % VIEW_HISTORY] = p;
+        return;
+    }
+    s->history[s->history_next] = p;
+    s->history_next = (uint16_t)((s->history_next + 1) % VIEW_HISTORY);
+    if (s->history_count < VIEW_HISTORY)
+        s->history_count++;
+}
 
 void view_scale(int *cold10, int *hot10) {
     int lo = (int)lround(number_or_default(&scale[0]) * 10);
@@ -299,6 +337,7 @@ static void climate(const uint8_t *payload, size_t len, size_t i, const char *so
         s->label[0] = 0;
     int64_t now = view_now_ms();
     s->data_ms = now ? now : 1;
+    remember(s, t, now);
 }
 
 static void health(const uint8_t *payload, size_t len, size_t i, const char *source) {
